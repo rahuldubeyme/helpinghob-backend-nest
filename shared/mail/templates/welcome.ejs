@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        .container {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: #f4f4f4;
+            padding: 10px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .content {
+            padding: 20px;
+        }
+
+        .footer {
+            font-size: 12px;
+            color: #777;
+            margin-top: 20px;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">Welcome to Fivra!</div>
+        <div class="content">
+            <p>Hi <%= locals.name %>,</p>
+
+            <% if (locals.role==='merchant' || locals.role==='company' ) { %>
+                <!-- Role with credentials: admin, staff, etc. -->
+                <p>Welcome to <strong>Fivra</strong>! Your account has been created successfully.</p>
+                <p>Here are your login credentials:</p>
+
+                <table
+                    style="width:100%; border-collapse:collapse; margin: 16px 0; background:#f9f9f9; border-radius:8px;">
+                    <tr>
+                        <td style="padding:10px 16px; font-weight:bold; width:40%; border-bottom:1px solid #eee;">Email
+                        </td>
+                        <td style="padding:10px 16px; border-bottom:1px solid #eee;">
+                            <%= locals.email %>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding:10px 16px; font-weight:bold;">Password</td>
+                        <td style="padding:10px 16px;">
+                            <%= locals.password %>
+                        </td>
+                    </tr>
+                </table>
+
+                <p style="color:#e74c3c; font-size:13px;">
+                    ⚠️ For security reasons, please change your password after your first login.
+                </p>
+                <p>
+                    <a href="<%= locals.loginUrl %>"
+                        style="display:inline-block; padding:10px 24px; background:#4F46E5; color:#fff; border-radius:6px; text-decoration:none; font-weight:bold;">
+                        Login to Your Account
+                    </a>
+                </p>
+
+                <% } else { %>
+                    <!-- Regular user: welcome onboard message -->
+                    <p>Welcome to <strong>Fivra</strong>! We're excited to have you on board.</p>
+                    <p>Start exploring our platform and take your business to the next level.</p>
+                    <p>
+                        <a href="<%= locals.loginUrl %>"
+                            style="display:inline-block; padding:10px 24px; background:#4F46E5; color:#fff; border-radius:6px; text-decoration:none; font-weight:bold;">
+                            Get Started
+                        </a>
+                    </p>
+
+                    <% } %>
+
+                        <p>Best regards,<br>The Fivra Team</p>
+        </div>
+        <div class="footer">
+            &copy; 2026 Fivra. All rights reserved.
+        </div>
+    </div>
+</body>
+
+</html>

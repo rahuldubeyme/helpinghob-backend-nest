@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        .container {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: #f4f4f4;
+            padding: 10px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .content {
+            padding: 20px;
+        }
+
+        .status-box {
+            padding: 16px 20px;
+            border-radius: 8px;
+            margin: 16px 0;
+            font-size: 15px;
+        }
+
+        .status-approved {
+            background: #f0fdf4;
+            border-left: 4px solid #22c55e;
+            color: #166534;
+        }
+
+        .status-rejected {
+            background: #fff1f2;
+            border-left: 4px solid #e74c3c;
+            color: #991b1b;
+        }
+
+        .footer {
+            font-size: 12px;
+            color: #777;
+            margin-top: 20px;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+
+        <!-- ✅ Header changes based on status -->
+        <% if (locals.profileStatus==='approved' ) { %>
+            <div class="header" style="background:#f0fdf4; color:#166534;">🎉 Profile Approved!</div>
+            <% } else if (locals.profileStatus==='rejected' ) { %>
+                <div class="header" style="background:#fff1f2; color:#991b1b;">❌ Profile Not Approved</div>
+                <% } %>
+
+                    <div class="content">
+                        <p>Hi <%= locals.name %>,</p>
+
+                        <% if (locals.profileStatus==='approve' ) { %>
+
+                            <div class="status-box status-approved">
+                                ✅ Your profile has been <strong>reviewed and approved</strong> by our team.
+                            </div>
+
+                            <p>Great news! Your <strong>Fivra</strong> profile is now active.</p>
+                            <p>You can now log in and start managing your services and more.</p>
+
+
+                            <p>
+                                <a href="<%= locals.loginUrl %>"
+                                    style="display:inline-block; padding:10px 24px; background:#22c55e; color:#fff; border-radius:6px; text-decoration:none; font-weight:bold;">
+                                    Go to Dashboard
+                                </a>
+                            </p>
+
+                            <% } else if (locals.profileStatus==='reject' ) { %>
+
+                                <div class="status-box status-rejected">
+                                    ❌ Your profile has been <strong>reviewed and rejected</strong> by our team.
+                                </div>
+
+                                <p>Unfortunately, your <strong>Fivra</strong> profile did not meet our verification
+                                    requirements at this time.</p>
+
+                                <% if (locals.rejectReason) { %>
+                                    <p><strong>Reason:</strong></p>
+                                    <div
+                                        style="background:#fef2f2; padding:12px 16px; border-radius:6px; color:#7f1d1d; margin-bottom:16px;">
+                                        <%= locals.rejectReason %>
+                                    </div>
+                                    <% } %>
+
+                                        <% } %>
+                                            <p>Best regards,<br>The Fivra Team</p>
+                    </div>
+
+                    <div class="footer">
+                        &copy; 2026 Fivra. All rights reserved.
+                    </div>
+    </div>
+</body>
+
+</html>

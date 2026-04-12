@@ -1,0 +1,122 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "ES2023",
+    "lib": [
+      "ES2023",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "sourceMap": true,
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "incremental": true,
+    "skipLibCheck": true,
+    "strictNullChecks": true,
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitAny": false,
+    "strictBindCallApply": false,
+    "noFallthroughCasesInSwitch": false,
+    "paths": {
+      "@common/*": [
+        "common/*"
+      ],
+      "@shared/*": [
+        "shared/*"
+      ],
+      "@config/*": [
+        "src/config/*"
+      ],
+      "@constants/*": [
+        "common/constants/*"
+      ],
+      "@database/*": [
+        "shared/mongodb/*"
+      ],
+      "@mongodb/*": [
+        "shared/mongodb/*"
+      ],
+      "@decorators/*": [
+        "common/decorators/*"
+      ],
+      "@dtos/*": [
+        "common/dto/*"
+      ],
+      "@enums/*": [
+        "common/enums/*"
+      ],
+      "@filters/*": [
+        "common/filters/*"
+      ],
+      "@guards/*": [
+        "common/guards/*"
+      ],
+      "@cache/*": [
+        "shared/redis/*"
+      ],
+      "@health/*": [
+        "shared/health/*"
+      ],
+      "@i18n/*": [
+        "shared/i18n/*"
+      ],
+      "@swagger/*": [
+        "shared/swagger/*"
+      ],
+      "@interceptors/*": [
+        "common/interceptors/*"
+      ],
+      "@interfaces/*": [
+        "common/interfaces/*"
+      ],
+      "@middleware/*": [
+        "common/middleware/*"
+      ],
+      "@modules/*": [
+        "src/modules/*"
+      ],
+      "@pipes/*": [
+        "common/pipes/*"
+      ],
+      "@rate-limit/*": [
+        "shared/rate-limit/*"
+      ],
+      "@socket/*": [
+        "shared/socket/*"
+      ],
+      "@transport/*": [
+        "shared/transport/*"
+      ],
+      "@utils/*": [
+        "common/utils/*"
+      ],
+      "@mail/*": [
+        "shared/mail/*"
+      ],
+      "@sms/*": [
+        "shared/sms/*"
+      ],
+      "@microservices/*": [
+        "microservices/*"
+      ]
+    }
+  },
+  "include": [
+    "src/**/*",
+    "common/**/*",
+    "shared/**/*",
+    "microservices/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}
