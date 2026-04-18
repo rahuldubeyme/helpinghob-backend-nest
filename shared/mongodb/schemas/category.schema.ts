@@ -17,6 +17,9 @@ export class Category {
     })
     masterServiceId: Types.ObjectId;
 
+    @Prop({ default: 1 })
+    masterId: number;
+
     @Prop()
     icon: string;
 

@@ -1,21 +1,24 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Vehicle, VehicleDocument } from '@mongodb/schemas';
+import { Category, CategoryDocument, Vehicle, VehicleDocument } from '@mongodb/schemas';
 import { MapsService } from '../maps.service';
+
+import { RidePricingDto } from '../dto/pick-n-drop.dto';
 
 @Injectable()
 export class VehicleService {
     constructor(
         @InjectModel(Vehicle.name) private vehicleModel: Model<VehicleDocument>,
+        @InjectModel(Category.name) private categoryModel: Model<CategoryDocument>,
         private readonly mapsService: MapsService,
     ) { }
 
     async getVehicles() {
-        return this.vehicleModel.find({ isDeleted: false, isSuspended: false }).sort({ title: 1 }).lean();
+        return this.categoryModel.find({ isDeleted: false, isSuspended: false, masterId : 19 }).sort({ title: 1 }).lean();
     }
 
-    async getVehiclePricing(body: any) {
+    async getVehiclePricing(body: RidePricingDto) {
         const { source, destination } = body;
         const vehicles = await this.vehicleModel.find({ isDeleted: false });
 
