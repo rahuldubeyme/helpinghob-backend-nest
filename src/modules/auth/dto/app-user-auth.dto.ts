@@ -86,30 +86,57 @@ export class CreateProfileDto {
 
 // ── Setup Profile (Driver/Merchant) ───────────────────────────────────────────
 export class SetupProfileDto {
-    @ApiPropertyOptional({ example: 1 })
+    @ApiPropertyOptional({ example: 1, description: '1=Customer, 2=Driver, 3=Merchant' })
     @IsNumber()
     @IsOptional()
     roleType?: number;
 
-    @ApiPropertyOptional({ example: 'Driver' })
+    @ApiPropertyOptional({ example: 'driver', description: 'driver | merchant | vendor' })
     @IsString()
     @IsOptional()
     role?: string;
 
-    @ApiPropertyOptional() @IsString() @IsOptional() cityId?: string;
-    @ApiPropertyOptional() @IsString() @IsOptional() vehicleOwnerShip?: string;
-    @ApiPropertyOptional() @IsString() @IsOptional() vehicleId?: string;
-    @ApiPropertyOptional() @IsBoolean() @IsOptional() haveHelmet?: boolean;
-    @ApiPropertyOptional() @IsString() @IsOptional() vehicleNumber?: string;
-    @ApiPropertyOptional() @IsString() @IsOptional() vehicleColor?: string;
-    @ApiPropertyOptional() @IsString() @IsOptional() vehicleModelYear?: string;
-    @ApiPropertyOptional() @IsString() @IsOptional() vehicleModelId?: string;
-    @ApiPropertyOptional() @IsString() @IsOptional() aadharNumber?: string;
-    @ApiPropertyOptional({ type: [String] }) @IsArray() @IsOptional() personalDoc?: string[];
-    @ApiPropertyOptional({ type: [String] }) @IsArray() @IsOptional() vehicleDocuments?: string[];
-    @ApiPropertyOptional() @IsNumber() @IsOptional() lat?: number;
-    @ApiPropertyOptional() @IsNumber() @IsOptional() lng?: number;
-    @ApiPropertyOptional() @IsString() @IsOptional() deviceToken?: string;
+    @ApiPropertyOptional({ example: '664f1c2e8a1b2c3d4e5f6a7b' })
+    @IsString() @IsOptional() cityId?: string;
+
+    @ApiPropertyOptional({ example: 'owned', description: 'owned | financed | rented' })
+    @IsString() @IsOptional() vehicleOwnerShip?: string;
+
+    @ApiPropertyOptional({ example: '664f1c2e8a1b2c3d4e5f6a7c', description: 'Vehicle document ID' })
+    @IsString() @IsOptional() vehicleId?: string;
+
+    @ApiPropertyOptional({ example: true })
+    @IsBoolean() @IsOptional() haveHelmet?: boolean;
+
+    @ApiPropertyOptional({ example: 'MH12AB1234' })
+    @IsString() @IsOptional() vehicleNumber?: string;
+
+    @ApiPropertyOptional({ example: 'Black' })
+    @IsString() @IsOptional() vehicleColor?: string;
+
+    @ApiPropertyOptional({ example: '2022' })
+    @IsString() @IsOptional() vehicleModelYear?: string;
+
+    @ApiPropertyOptional({ example: '664f1c2e8a1b2c3d4e5f6a7d', description: 'Vehicle model reference ID' })
+    @IsString() @IsOptional() vehicleModelId?: string;
+
+    @ApiPropertyOptional({ example: '1234 5678 9012' })
+    @IsString() @IsOptional() aadharNumber?: string;
+
+    @ApiPropertyOptional({ type: [String], example: ['https://s3.amazonaws.com/docs/aadhar.jpg'] })
+    @IsArray() @IsOptional() personalDoc?: string[];
+
+    @ApiPropertyOptional({ type: [String], example: ['https://s3.amazonaws.com/docs/rc.jpg', 'https://s3.amazonaws.com/docs/insurance.jpg'] })
+    @IsArray() @IsOptional() vehicleDocuments?: string[];
+
+    @ApiPropertyOptional({ example: 19.0760, description: 'Latitude' })
+    @IsNumber() @IsOptional() lat?: number;
+
+    @ApiPropertyOptional({ example: 72.8777, description: 'Longitude' })
+    @IsNumber() @IsOptional() lng?: number;
+
+    @ApiPropertyOptional({ example: 'fcm-device-token-xyz' })
+    @IsString() @IsOptional() deviceToken?: string;
 }
 
 // ── Update Profile ────────────────────────────────────────────────────────────
