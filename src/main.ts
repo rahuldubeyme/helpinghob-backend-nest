@@ -5,31 +5,36 @@ import { ConfigService } from '@nestjs/config';
 import * as fs from 'fs';
 import { join } from 'path';
 import initSwagger from '@swagger/index';
-import * as dotenv from 'dotenv';
 import { setupGlobalConfig } from '@config/global.config';
 import { JwtUtility } from '@common/utils/jwt.utility';
 
 async function bootstrap() {
-  dotenv.config({ path: '.env' });
-
   const httpsOptions =
     process.env.SERVER_MODE === 'https'
       ? {
           key: fs.readFileSync(process.env.SSL_KEY_PATH || '', 'utf8'),
           cert: fs.readFileSync(process.env.SSL_CERT_PATH || '', 'utf8'),
-          ca: fs.readFileSync(process.env.SSL_CA_PATH || '', 'utf8'),
+          ca: process.env.SSL_CA_PATH ? fs.readFileSync(process.env.SSL_CA_PATH, 'utf8') : undefined,
         }
       : undefined;
 
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     httpsOptions,
+    logger: process.env.NODE_ENV === 'production'
+      ? ['error', 'warn']
+      : ['log', 'debug', 'error', 'warn', 'verbose'],
   });
+
   const configService = app.get(ConfigService);
   JwtUtility.init(configService);
 
   setupGlobalConfig(app);
 
-  await initSwagger(app);
+  // Swagger only in non-production
+  if (process.env.NODE_ENV !== 'production') {
+    await initSwagger(app);
+  }
+
   app.useStaticAssets(join(__dirname, '..', 'static'));
   app.setBaseViewsDir(join(__dirname, '..', 'views'));
   app.setViewEngine('ejs');
@@ -37,7 +42,10 @@ async function bootstrap() {
   const port = configService.get<number>('PORT', 3000);
   await app.listen(port);
 
-  console.log(`Server running on port ${port}`);
+  console.log(`[Bootstrap] Server running on port ${port} [${process.env.NODE_ENV}]`);
 }
 
-bootstrap();
+bootstrap().catch(err => {
+  console.error('[Bootstrap] Fatal error during startup:', err);
+  process.exit(1);
+});

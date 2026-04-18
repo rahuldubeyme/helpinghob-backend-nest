@@ -76,8 +76,8 @@ export class AuthService {
             { upsert: true, new: true },
         );
 
-        // Log OTP in non-prod
-        if (process.env.NODE_ENV !== 'production') {
+        // Log OTP only in development
+        if (process.env.NODE_ENV === 'development') {
             console.log(`[AUTH] OTP for ${countryCode}${mobile} → ${otp} (Role: ${mappedRole})`);
         }
 
@@ -179,7 +179,7 @@ export class AuthService {
             { upsert: true },
         );
 
-        if (process.env.NODE_ENV !== 'production') {
+        if (process.env.NODE_ENV === 'development') {
             console.log(`[AUTH] Resend OTP for ${countryCode}${mobile} → ${otp}`);
         }
 
@@ -243,15 +243,11 @@ export class AuthService {
         }
 
         if (user.roleName === 'merchant'){
-
+            // TODO: merchant-specific setup
         }
 
         if (user.roleName === 'vendor'){
-
-        }
-
-        if (user.roleName === 'merchant'){
-
+            // TODO: vendor-specific setup
         }
 
 
@@ -351,7 +347,9 @@ export class AuthService {
         user.validTill = new Date(Date.now() + validMinutes * 60000);
         await user.save();
 
-        console.log(`[AUTH] Email OTP for ${email} → ${otp}`);
+        if (process.env.NODE_ENV === 'development') {
+            console.log(`[AUTH] Email OTP for ${email} → ${otp}`);
+        }
         return { language };
     }
 
@@ -384,7 +382,9 @@ export class AuthService {
             { upsert: true, new: true },
         );
 
-        console.log(`[AUTH] Phone OTP for ${countryCode}${mobile} → ${otp}`);
+        if (process.env.NODE_ENV === 'development') {
+            console.log(`[AUTH] Phone OTP for ${countryCode}${mobile} → ${otp}`);
+        }
         return { language };
     }
 

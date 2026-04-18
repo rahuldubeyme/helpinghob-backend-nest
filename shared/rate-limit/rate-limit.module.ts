@@ -6,8 +6,8 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 @Module({
     imports: [
         ThrottlerModule.forRoot([{
-            ttl: 60000,
-            limit: 100000,
+            ttl: 60000,   // 1 minute window
+            limit: 100,   // 100 requests per minute per IP
         }]),
     ],
     providers: [

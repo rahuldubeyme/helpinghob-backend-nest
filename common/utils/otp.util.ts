@@ -5,16 +5,15 @@ import { ConfigService } from '@nestjs/config';
 
 
 export const generateOtp = (length: number = 4): string => {
-  let result = "";
-  if (process.env.NODE_ENV === "DEVELOPMENT") {
-    result = "1234";
-  } else {
-    while (result.length < length) {
-      result += crypto.randomInt(0, 9).toString();
-    }
+  // Always use fixed OTP in development for easy testing
+  if (process.env.NODE_ENV === 'development') {
+    return '1234';
   }
-
-  return result.padEnd(length, "0");
+  let result = '';
+  while (result.length < length) {
+    result += crypto.randomInt(0, 10).toString();
+  }
+  return result;
 };
 
 export const otpValidTill = (configService: ConfigService) => {
