@@ -70,12 +70,10 @@ export class UserService {
         return {};
     }
 
-    // GET /users/category-list
     async getCategoryList() {
         //return this.categoryModel.find({ isDeleted: false }).lean();
     }
 
-    // POST /users/subcategory-list
     async getSubCategoryList(categoryIds: string[], search?: string) {
         const match: any = { $and: [{ isDeleted: false }] };
         if (categoryIds?.length) match.$and.push({ categoryId: { $in: categoryIds.map(id => new Types.ObjectId(id)) } });

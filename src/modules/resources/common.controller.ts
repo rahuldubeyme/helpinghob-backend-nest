@@ -3,6 +3,7 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@ne
 import { ResourcesService } from './resources.service';
 import { Public } from '@common/decorators/public.decorator';
 import { JwtAppUserAuthGuard } from '@common/guards/jwt-app-user-auth.guard';
+import { SubCategoryListDto } from './dto/subcategory-list.dto';
 
 @ApiTags('Common')
 @Controller('common')
@@ -28,20 +29,21 @@ export class CommonController {
 
     @Public()
     @Get('category-list')
-    @ApiOperation({ summary: 'Get service categories with optional keyword search' })
+    @ApiOperation({ summary: 'Get service categories by masterServiceId with optional keyword search' })
+    @ApiQuery({ name: 'masterServiceId', required: true })
     @ApiQuery({ name: 'searchKeyword', required: false })
-    getCategoryList(@Query('searchKeyword') searchKeyword?: string) {
-        return this.resourcesService.getCategoryList(searchKeyword);
+    getCategoryList(
+        @Query('masterServiceId') masterServiceId: string,
+        @Query('searchKeyword') searchKeyword?: string,
+    ) {
+        return this.resourcesService.getCategoryList(masterServiceId, searchKeyword);
     }
 
     @Public()
     @Post('subcategory-list')
     @ApiOperation({ summary: 'Get subcategories filtered by categoryIds and/or search keyword' })
-    getSubCategoryList(
-        @Body('categoryIds') categoryIds?: string[],
-        @Body('search') search?: string,
-    ) {
-        return this.resourcesService.getSubCategoryList(categoryIds, search);
+    getSubCategoryList(@Body() dto: SubCategoryListDto) {
+        return this.resourcesService.getSubCategoryList(dto.categoryIds, dto.search);
     }
 
 

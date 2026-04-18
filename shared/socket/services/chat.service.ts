@@ -5,7 +5,7 @@ import { Chat, ChatDocument } from '@mongodb/schemas/chat.schema';
 import { ChatMessage, ChatMessageDocument } from '@mongodb/schemas/chat-message.schema';
 import { ChatRoom, ChatRoomDocument } from '@mongodb/schemas/chat-room.schema';
 import { User, UserDocument } from '@mongodb/schemas/user.schema';
-import { ChatHistoryQueryDto, RoomQueryDto, SendMessageDto } from '../dto/chat.dto';
+import { ChatHistoryQueryDto, SendMessageDto } from '../dto/chat.dto';
 
 @Injectable()
 export class ChatService {
@@ -41,7 +41,7 @@ export class ChatService {
             .lean();
     }
 
-    async getAdminRooms(query: RoomQueryDto) {
+    async getRooms() {
         return this.roomModel.find({ isDeleted: false }).sort({ updatedAt: -1 }).lean();
     }
 
@@ -50,15 +50,9 @@ export class ChatService {
         return { success: true };
     }
 
-    async assignSubAdmin(roomId: string, subAdminId: string) {
-        await this.roomModel.findByIdAndUpdate(roomId, { $set: { assignedSubAdminId: subAdminId } });
-        return { success: true };
-    }
-
     async validateRoomAccess(roomId: string, user: any): Promise<boolean> {
         const room = await this.roomModel.findById(roomId).lean();
         if (!room) return false;
-        if (user.role === 'admin') return true;
         return true;
     }
 }

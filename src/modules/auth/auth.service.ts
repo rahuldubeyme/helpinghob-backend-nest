@@ -242,6 +242,17 @@ export class AuthService {
             };
         }
 
+        if (user.roleName === 'merchant'){
+
+        }
+
+        if (user.roleName === 'vendor'){
+
+        }
+
+        if (user.roleName === 'merchant'){
+
+        }
 
 
         if (lat !== undefined && lng !== undefined) {

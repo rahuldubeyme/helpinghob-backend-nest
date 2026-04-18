@@ -7,6 +7,7 @@ import { Banner, BannerDocument } from '@mongodb/schemas/banner.schema';
 import { Notification, NotificationDocument } from '@mongodb/schemas/notification.schema';
 import { StaticPages, StaticPagesDocument } from '@mongodb/schemas/static-pages.schema';
 import { MasterService, MasterServiceDocument } from '@mongodb/schemas/master-service.schema';
+import { Category, CategoryDocument } from '@mongodb/schemas/category.schema';
 import { SubCategory, SubCategoryDocument } from '@mongodb/schemas/sub-category.schema';
 
 @Injectable()
@@ -18,6 +19,7 @@ export class ResourcesService {
     @InjectModel(Notification.name) private readonly notificationModel: Model<NotificationDocument>,
     @InjectModel(StaticPages.name) private readonly staticPagesModel: Model<StaticPagesDocument>,
     @InjectModel(MasterService.name) private readonly masterServiceModel: Model<MasterServiceDocument>,
+    @InjectModel(Category.name) private readonly categoryModel: Model<CategoryDocument>,
     @InjectModel(SubCategory.name) private readonly subCategoryModel: Model<SubCategoryDocument>,
   ) { }
 
@@ -37,10 +39,10 @@ export class ResourcesService {
     return banner;
   }
 
-  async getCategoryList(search?: string) {
-    const q: any = { isDeleted: false };
-    if (search) q.$or = [{ title: new RegExp(search, 'i') }];
-    return this.subCategoryModel.find(q).lean();
+  async getCategoryList(masterServiceId: string, search?: string) {
+    const q: any = { isDeleted: false, masterServiceId: new Types.ObjectId(masterServiceId) };
+    if (search) q.title = new RegExp(search, 'i');
+    return this.categoryModel.find(q).lean();
   }
 
   async getSubCategoryList(categoryIds?: string[], search?: string) {

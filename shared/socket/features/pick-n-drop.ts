@@ -20,6 +20,21 @@ export class PickNDropSocket {
         private readonly driverService: DriverService,
     ) { }
 
+    @SubscribeMessage('incomming_ride_request')
+    @UsePipes(new ValidationPipe())
+    async handleIncommingRequestRide(
+        @MessageBody() dto: any,
+        @ConnectedSocket() client: Socket,
+    ) {
+        const user = client.data.user;
+        if (!user) return { success: false, message: 'Unauthorized' };
+
+        const rideRequest = await this.rideService.createRideRequest(user.id, dto);
+        this.server.to('drivers').emit('incomming_ride', rideRequest);
+
+        return { success: true, data: rideRequest };
+    }
+
     @SubscribeMessage('request_ride')
     @UsePipes(new ValidationPipe())
     async handleRequestRide(

@@ -27,7 +27,7 @@ const USER_ROUTE_PREFIXES = [
   // '/bookings',
   '/resources',
   '/setting',
-  // '/chat',
+  '/chat',
   '/util',
 ];
 
@@ -50,7 +50,7 @@ const PROVIDER_ROUTE_PREFIXES = [
   // '/bookings',
   '/resources',
   '/setting',
-  // '/chat',
+  '/chat',
   '/util',
 ];
 

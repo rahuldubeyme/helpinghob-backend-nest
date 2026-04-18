@@ -9,6 +9,7 @@ import { Banner, BannerSchema } from '@mongodb/schemas/banner.schema';
 import { Notification, NotificationSchema } from '@mongodb/schemas/notification.schema';
 import { StaticPages, StaticPagesSchema } from '@mongodb/schemas/static-pages.schema';
 import { MasterService, MasterServiceSchema } from '@mongodb/schemas/master-service.schema';
+import { Category, CategorySchema } from '@mongodb/schemas/category.schema';
 import { SubCategory, SubCategorySchema } from '@mongodb/schemas/sub-category.schema';
 
 @Module({
@@ -20,6 +21,7 @@ import { SubCategory, SubCategorySchema } from '@mongodb/schemas/sub-category.sc
       { name: Notification.name, schema: NotificationSchema },
       { name: StaticPages.name, schema: StaticPagesSchema },
       { name: MasterService.name, schema: MasterServiceSchema },
+      { name: Category.name, schema: CategorySchema },
       { name: SubCategory.name, schema: SubCategorySchema },
     ]),
   ],

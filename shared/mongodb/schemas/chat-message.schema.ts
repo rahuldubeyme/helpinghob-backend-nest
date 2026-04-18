@@ -11,7 +11,7 @@ export class ChatMessage {
   @Prop({ required: true })
   senderId: string;
 
-  @Prop({ required: true, enum: ['merchant', 'admin', 'sub_admin'] })
+  @Prop({ required: true, enum: ['merchant', 'vendor', 'user'] })
   senderType: string;
 
   @Prop({ required: true })

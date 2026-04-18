@@ -3,7 +3,7 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiType, Auth, CurrentUser } from '@common/decorators';
 import { ROLE, USER_ROLE } from '@common/constant';
 import { ChatService } from './services/chat.service';
-import { AssignSubAdminDto, ChatHistoryQueryDto, RoomQueryDto } from './dto/chat.dto';
+import { ChatHistoryQueryDto } from './dto/chat.dto';
 
 @ApiTags('Chat Support')
 @Controller('chat')
@@ -12,18 +12,18 @@ export class ChatController {
 
     @ApiType([USER_ROLE.USER, USER_ROLE.PROVIDER])
     @Auth(ROLE.USER, USER_ROLE.PROVIDER)
-    @Get('merchant/room')
-    @ApiOperation({ summary: 'Merchant: Get or create his chat room with admin' })
+    @Get('create-room')
+    @ApiOperation({ summary: 'Get or create his chat room with othe user' })
     getMerchantRoom(@CurrentUser() user: any) {
         return this.chatService.getOrCreateRoom(user.id);
     }
 
     @ApiType([USER_ROLE.USER, USER_ROLE.PROVIDER])
     @Auth(ROLE.USER, USER_ROLE.PROVIDER)
-    @Get('admin/rooms')
-    @ApiOperation({ summary: 'Admin: List all chat rooms (can filter by assigned sub-admin)' })
-    getAdminRooms(@Query() query: RoomQueryDto) {
-        return this.chatService.getAdminRooms(query);
+    @Get('rooms')
+    @ApiOperation({ summary: 'List all chat rooms' })
+    getAdminRooms() {
+        return this.chatService.getRooms();
     }
 
     @Get('messages/:roomId')
@@ -35,16 +35,6 @@ export class ChatController {
         @Query() query: ChatHistoryQueryDto,
     ) {
         return this.chatService.getRoomMessages(roomId, query);
-    }
-
-    @ApiType([USER_ROLE.USER, USER_ROLE.PROVIDER])
-    @Auth(ROLE.USER, USER_ROLE.PROVIDER)
-    @Post('assign')
-    @ApiOperation({ summary: 'Super Admin: Assign a sub-admin/staff to handle a merchant chat' })
-    assignSubAdmin(
-        @Body() dto: AssignSubAdminDto
-    ) {
-        return this.chatService.assignSubAdmin(dto.roomId, dto.subAdminId);
     }
 
     @Patch('close/:roomId')

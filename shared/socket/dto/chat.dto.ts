@@ -37,12 +37,6 @@ export class ChatHistoryQueryDto {
     offset?: number;
 }
 
-export class RoomQueryDto {
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsString()
-    assignedSubAdminId?: string;
-}
 
 export class AssignSubAdminDto {
     @ApiProperty()

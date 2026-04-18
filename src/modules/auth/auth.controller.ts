@@ -9,8 +9,9 @@ import {
 } from "./dto/app-user-auth.dto";
 import { ApiType } from "@common/decorators/api-type.decorator";
 import { Auth } from "@common/decorators";
+import { ROLE, USER_ROLE } from "@common/constant";
 
-@ApiType(['user', 'web', 'provider']) // swagger
+@ApiType([USER_ROLE.USER, USER_ROLE.PROVIDER]) // swagger
 @ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {

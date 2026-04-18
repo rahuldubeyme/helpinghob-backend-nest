@@ -5,11 +5,8 @@ export type ChatRoomDocument = ChatRoom & Document;
 
 @Schema({ collection: 'chat_rooms', timestamps: true })
 export class ChatRoom {
-  @Prop({ type: Types.ObjectId, ref: 'Merchant', required: true })
-  merchantId: Types.ObjectId;
-
-  @Prop({ type: Types.ObjectId, ref: 'SubAdmin' })
-  assignedSubAdminId: Types.ObjectId;
+  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  userId: Types.ObjectId;
 
   @Prop({ enum: ['open', 'closed'], default: 'open' })
   status: string;
