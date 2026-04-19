@@ -108,9 +108,9 @@ export class RideService {
         const result = savedRequest.toObject();
 
         if (driverId) {
-            this.socketService.emitToUser(driverId, 'incomming_request', result);
+            this.socketService.emitToUser(driverId, 'incomming_ride', result);
         } else {
-            this.socketService.broadcast('ride_available', result);
+            this.socketService.broadcast('incomming_ride', result);
         }
 
         return result;
@@ -167,8 +167,7 @@ export class RideService {
         await ride.save();
         const result = ride.toObject();
 
-        const event = dto?.action === 'accept' ? 'ride_accepted' : 'ride_rejected';
-        this.socketService.emitToUser(ride.userId.toString(), event, result);
+        this.socketService.emitToUser(ride.userId.toString(), 'ride_request_status', result);
 
         return { result, message: `Ride ${dto?.action}ed successfully` };
     }
@@ -202,18 +201,13 @@ export class RideService {
             ? ride.driverId?.toString()
             : ride.userId.toString();
 
+        const event = dto.status === 'cancelled' ? 'ride_request_status' : 'ride_status_changed';
         if (targetId) {
-            const event = dto.status === 'cancelled' ? 'ride_cancelled' : 'ride_request_status';
-            this.socketService.emitToUser(targetId, event, {
-                rideId: dto.rideId,
-                status: dto.status,
-                cancellationReason: dto.cancellationReason,
-                cancelledBy: ride.cancelledBy
-            });
+            this.socketService.emitToUser(targetId, event, result);
         }
 
-        // Also notify the caller if they are listening on a generic event
-        this.socketService.emitToUser(user.id, 'ride_request_status', { rideId: dto.rideId, status: dto.status });
+        // Also notify the caller
+        this.socketService.emitToUser(user.id, event, result);
 
         return result;
     }
@@ -226,7 +220,7 @@ export class RideService {
         ride.status = 'started';
         await ride.save();
 
-        this.socketService.emitToUser(ride.userId.toString(), 'ride_started', ride);
+        this.socketService.emitToUser(ride.userId.toString(), 'ride_status_changed', ride);
 
         return { status: ride.status };
     }
@@ -238,7 +232,7 @@ export class RideService {
         ride.status = 'completed';
         await ride.save();
 
-        this.socketService.emitToUser(ride.userId.toString(), 'ride_reached_destination', ride);
+        this.socketService.emitToUser(ride.userId.toString(), 'ride_status_changed', ride);
 
         return { status: ride.status };
     }
@@ -300,7 +294,14 @@ export class RideService {
         };
 
         await ride.save();
-        return ride.toObject();
+        const result = ride.toObject();
+
+        this.socketService.emitToUser(ride.userId.toString(), 'ride_request_status', result);
+        if (ride.driverId) {
+            this.socketService.emitToUser(ride.driverId.toString(), 'ride_request_status', result);
+        }
+
+        return result;
     }
 
     async reportDispute(userId: string, dto: any) {
@@ -320,7 +321,14 @@ export class RideService {
         });
 
         await ride.save();
-        return { message: 'Dispute reported' };
+        const result = ride.toObject();
+
+        this.socketService.emitToUser(ride.userId.toString(), 'ride_request_status', result);
+        if (ride.driverId) {
+            this.socketService.emitToUser(ride.driverId.toString(), 'ride_request_status', result);
+        }
+
+        return { message: 'Dispute reported', result };
     }
 
     async submitReview(userId: string, dto: SubmitReviewDto) {

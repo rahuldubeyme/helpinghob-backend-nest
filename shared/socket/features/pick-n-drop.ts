@@ -10,7 +10,7 @@ import { Types } from 'mongoose';
 import { UsePipes, ValidationPipe } from '@nestjs/common';
 import { RideService } from '../../../src/modules/pick-n-drop/ride/ride.service';
 import { DriverService } from '../../../src/modules/pick-n-drop/driver/driver.service';
-import { CreateRideDto, BookRideDto } from '../../../src/modules/pick-n-drop/ride/dto/ride.dto';
+import { CreateRideDto, BookRideDto, RideActionDto } from '../../../src/modules/pick-n-drop/ride/dto/ride.dto';
 import {
     SocketAcceptRideDto,
     SocketUpdateLocationDto,
@@ -50,16 +50,15 @@ export class PickNDropSocket {
     // this will used by user when real time any driver accept/reject ride request
     @SubscribeMessage('ride_request_status')
     async handleRideRequestStatus(
+        @MessageBody() data: RideActionDto,
         @ConnectedSocket() client: Socket,
     ) {
         const driver = client.data.user;
         if (!driver) return { success: false, message: 'Unauthorized' };
 
-        const result = await this.rideService.handleRideAction(driver.id, {
-            action: 'accept'
-        });
-        if (result?.userId) {
-            this.server.to(result.userId.toString()).emit('ride_request_status', result);
+        const result = await this.rideService.handleRideRequest(driver.id, data);
+        if (result?.result?.userId) {
+            this.server.to(result.result.userId.toString()).emit('ride_request_status', result.result);
         }
 
         return result;
@@ -100,10 +99,7 @@ export class PickNDropSocket {
         const ride = await this.rideService.getRide(data.rideId);
         if (!ride) return { success: false, message: 'Ride not found' };
 
-        this.server.to(ride.userId.toString()).emit('ride_status_changed', {
-            rideId: data.rideId,
-            status: data.status,
-        });
+        this.server.to(ride.userId.toString()).emit('ride_status_changed', ride);
 
         return { success: true };
     }
@@ -122,6 +118,13 @@ export class PickNDropSocket {
             status: 'cancelled',
             cancellationReason: data.reason
         });
+
+        if (result?.userId) {
+            this.server.to(result.userId.toString()).emit('ride_request_status', result);
+        }
+        if (result?.driverId) {
+            this.server.to(result.driverId.toString()).emit('ride_request_status', result);
+        }
 
         return { success: true, data: result };
     }
