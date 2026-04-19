@@ -17,6 +17,49 @@ export class RideService {
         private readonly mapsService: MapsService,
     ) { }
 
+    async getHomeScreen(user: any) {
+
+        const driverObjectId = new Types.ObjectId(user?.id);
+
+        const [allRides, earningResult] = await Promise.all([
+            this.rideRequestModel
+                .find({
+                    driverId: driverObjectId,
+                    status: 'pending',
+                    paymentStatus: 'pending',
+                })
+                .select('-__v')
+                .lean()
+                .limit(5)
+                .exec(),
+
+            this.rideRequestModel
+                .aggregate<{ totalEarning: number }>([
+                    {
+                        $match: {
+                            driverId: driverObjectId,
+                            status: 'completed',
+                            paymentStatus: 'paid',
+                        },
+                    },
+                    {
+                        $group: {
+                            _id: null,
+                            totalEarning: { $sum: '$price.totalFare' },
+                        },
+                    },
+                ])
+                .exec(),
+        ]);
+
+        return {
+            allRides,
+            todayEarning: earningResult[0]?.totalEarning ?? 0,
+            totalRides: allRides.length,
+            currentLocation: user.location,
+        };
+    }
+
     async createRideRequest(userId: string, dto: CreateRideDto) {
         const { source, destination, vehicleId, price, driverId } = dto;
         const pickupOtp = Math.floor(1000 + Math.random() * 9000).toString();

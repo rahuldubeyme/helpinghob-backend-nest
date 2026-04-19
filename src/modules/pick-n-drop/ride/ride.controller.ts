@@ -12,6 +12,12 @@ import { PaginationDto } from '@dtos/pagination.dto';
 export class RideController {
     constructor(private readonly rideService: RideService) { }
 
+    @Get('/home')
+    @ApiOperation({ summary: 'home screen for driver' })
+    async getHomeScreen(@Req() req: any) {
+        return await this.rideService.getHomeScreen(req.user);
+    }
+
     @Post('ride-request')
     @ApiOperation({ summary: 'Create a new ride request' })
     async createRideRequest(@Body() dto: CreateRideDto, @Req() req: any) {
