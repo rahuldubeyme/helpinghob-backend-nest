@@ -3,7 +3,7 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiType, Auth, CurrentUser } from '@common/decorators';
 import { ROLE, USER_ROLE } from '@common/constant';
 import { ChatService } from './services/chat.service';
-import { ChatHistoryQueryDto } from './dto/chat.dto';
+import { ChatHistoryQueryDto } from './features/dto/chat.dto';
 
 @ApiTags('Chat Support')
 @Controller('chat')

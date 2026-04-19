@@ -5,7 +5,7 @@ import { Chat, ChatDocument } from '@mongodb/schemas/chat.schema';
 import { ChatMessage, ChatMessageDocument } from '@mongodb/schemas/chat-message.schema';
 import { ChatRoom, ChatRoomDocument } from '@mongodb/schemas/chat-room.schema';
 import { User, UserDocument } from '@mongodb/schemas/user.schema';
-import { ChatHistoryQueryDto, SendMessageDto } from '../dto/chat.dto';
+import { ChatHistoryQueryDto, SendMessageDto } from '../features/dto/chat.dto';
 
 @Injectable()
 export class ChatService {

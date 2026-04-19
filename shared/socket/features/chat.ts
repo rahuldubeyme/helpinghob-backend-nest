@@ -8,7 +8,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import { UsePipes, ValidationPipe } from '@nestjs/common';
 import { ChatService } from '../services/chat.service';
-import { JoinRoomDto, SendMessageDto } from '../dto/chat.dto';
+import { JoinRoomDto, SendMessageDto } from './dto/chat.dto';
 
 @WebSocketGateway({ cors: { origin: '*' } })
 export class ChatSocket {

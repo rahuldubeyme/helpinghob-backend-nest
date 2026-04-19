@@ -1,9 +1,9 @@
 import { Controller, Get, Post, Patch, Body, Param, Req, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ROLE } from '@common/constant';
-import { Auth } from '@common/decorators';
+import { Auth, Public } from '@common/decorators';
 import { RideService } from './ride.service';
-import { CreateRideDto, UpdateRideStatusDto, VerifyOtpDto, ChangeDestinationDto, CancelRideDto, ReportDisputeDto, SubmitReviewDto, RideActionDto } from './dto/ride.dto';
+import { CreateRideDto, UpdateRideStatusDto, VerifyOtpDto, ChangeDestinationDto, CancelRideDto, ReportDisputeDto, SubmitReviewDto, RideActionDto, BookRideDto } from './dto/ride.dto';
 import { PaginationDto } from '@dtos/pagination.dto';
 import { ApiType } from '@common/decorators';
 
@@ -17,7 +17,7 @@ export class RideController {
     @Post('ride-request')
     @ApiType('user')
     @ApiOperation({ summary: 'Create a new ride request' })
-    async createRideRequest(@Body() dto: CreateRideDto, @Req() req: any) {
+    async createRideRequest(@Body() dto: BookRideDto, @Req() req: any) {
         return await this.rideService.createRideRequest(req.user.id, dto);
     }
 

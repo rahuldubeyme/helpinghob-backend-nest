@@ -4,7 +4,7 @@ import { Model, Types } from 'mongoose';
 import { RideRequest, RideRequestDocument, User, UserDocument, Review, ReviewDocument, Vehicle, VehicleDocument } from '@mongodb/schemas';
 import { SocketService } from '@socket/socket.service';
 import { MapsService } from '@shared/maps/maps.service';
-import { CreateRideDto, RideActionDto, SubmitReviewDto } from './dto/ride.dto';
+import { CreateRideDto, RideActionDto, SubmitReviewDto, BookRideDto } from './dto/ride.dto';
 import { PaginationDto } from '@dtos/pagination.dto';
 
 @Injectable()
@@ -61,8 +61,8 @@ export class RideService {
         };
     }
 
-    async createRideRequest(userId: string, dto: CreateRideDto) {
-        const { source, destination, vehicleId, price, driverId } = dto;
+    async createRideRequest(userId: string, dto: BookRideDto) {
+        const { source, destination, vehicleId, totalFare, driverId } = dto;
         const pickupOtp = Math.floor(1000 + Math.random() * 9000).toString();
 
         // Fetch real distance/duration
@@ -92,8 +92,9 @@ export class RideService {
                 }
             },
             price: {
-                ...price,
-                totalFare: price.farePrice || price.totalFare,
+                baseFare: 0, // Should probably come from calculation or DTO
+                distanceFare: dto.totalFare,
+                totalFare: dto.totalFare,
                 currency: 'INR'
             },
             estimatedDistance: metrics.distance,
@@ -140,6 +141,10 @@ export class RideService {
         ]);
 
         return { history, total, page, limit };
+    }
+
+    async find(query: any) {
+        return await this.rideRequestModel.find(query).populate('userId vehicleId').lean();
     }
 
     async handleRideRequest(driverId: string, dto: RideActionDto) {

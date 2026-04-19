@@ -47,36 +47,10 @@ export class BookRideDto {
 }
 
 export class CreateRideDto {
-    @ApiProperty({ type: LocationDto })
-    @IsNotEmpty()
-    @ValidateNested()
-    @Type(() => LocationDto)
-    source: LocationDto;
-
-    @ApiProperty({ type: LocationDto })
-    @IsNotEmpty()
-    @ValidateNested()
-    @Type(() => LocationDto)
-    destination: LocationDto;
-
-    @ApiProperty({ example: '69c3e6c0bfe3fe1c56ba3ead' })
-    @IsNotEmpty()
-    @IsString()
-    vehicleId: string;
-
     @ApiProperty({ example: '65c3e6c0bfe3fe1c56ba3eaf', required: false })
     @IsOptional()
     @IsString()
     driverId?: string;
-
-    @ApiProperty({
-        example: { farePrice: 200, totalFare: 250 }
-    })
-    @IsNotEmpty()
-    price: {
-        farePrice: number;
-        totalFare: number;
-    };
 }
 
 export class UpdateRideStatusDto {
