@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Category, CategoryDocument, User, UserDocument, Vehicle, VehicleDocument } from '@mongodb/schemas';
-import { MapsService } from '../maps.service';
+import { MapsService } from '@shared/maps/maps.service';
 
 import { RidePricingDto } from './dto/vehicle.dto';
 

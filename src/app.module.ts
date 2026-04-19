@@ -19,6 +19,7 @@ import { AuthModule } from '@modules/auth/auth.module';
 import { MailModule } from '@shared/mail/mail.module';
 import { SmsModule } from '@shared/sms/sms.module';
 import { FcmModule } from '@shared/fcm/fcm.module';
+import { MapsModule } from '@shared/maps/maps.module';
 import { OndemandServiceModule } from '@modules/ondemand/ondemand.module';
 import { OndemandBookingModule } from '@modules/ondemand/booking/booking.module';
 import { FoodDeliveryModule } from '@modules/food-delivery/food-delivery.module';
@@ -48,6 +49,7 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
     MailModule,
     SmsModule,
     FcmModule,
+    MapsModule,
 
     I18nModule,
     RateLimitModule,

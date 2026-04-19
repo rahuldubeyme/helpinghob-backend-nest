@@ -26,6 +26,7 @@ export class RideRequest {
 
     @Prop({ type: Object })
     destination: {
+        status: string,
         address: string;
         location: {
             type: string,
@@ -48,7 +49,10 @@ export class RideRequest {
     @Prop()
     estimatedDuration: number; // in seconds
 
-    @Prop({ enum: ['pending', 'accepted', 'rejected', 'started', 'reached_pickup', 'completed', 'cancelled', 'REQUESTED', 'PENDING', 'ACCEPTED', 'REJECTED', 'CANCELLED'], default: 'pending' })
+    @Prop({ enum: ['pending', 'accepted', 'rejected'], default: 'pending' })
+    requestStatus: string;
+
+    @Prop({ enum: ['pending', 'on_the_way', 'reached', 'started', 'completed', 'cancelled'], default: 'pending' })
     status: string;
 
     @Prop()
@@ -56,6 +60,10 @@ export class RideRequest {
 
     @Prop({ type: [{ address: String, location: Object, changedAt: { type: Date, default: Date.now } }] })
     destinationHistory: any[];
+
+
+    @Prop({ default: false })
+    isDisputed: boolean;
 
     @Prop({ type: [{ reporterId: { type: Types.ObjectId, ref: 'User' }, reason: String, description: String, status: { type: String, default: 'open' }, createdAt: { type: Date, default: Date.now } }] })
     disputes: any[];
@@ -66,8 +74,14 @@ export class RideRequest {
     @Prop()
     pickupOtp: string;
 
+    @Prop({ default: '' })
+    cancelledBy: string;
+
     @Prop()
     cancellationReason: string;
+
+    @Prop()
+    cancelledRideAt: Date;
 
     @Prop({ enum: ['CASH', 'ONLINE', 'WALLET'], default: 'CASH' })
     paymentMethod: string;

@@ -80,13 +80,28 @@ export class CreateRideDto {
 }
 
 export class UpdateRideStatusDto {
-    @ApiProperty({ example: 'reached_pickup' })
+    @ApiProperty({ example: 'reached/started/completed/cancelled' })
     @IsNotEmpty()
     @IsString()
     status: string;
+
+    @ApiProperty({ example: '69e4141380600972892a5f32' })
+    @IsNotEmpty()
+    @IsString()
+    rideId: string;
+
+    @ApiProperty({ example: 'Issue raised' })
+    @IsNotEmpty()
+    @IsString()
+    cancellationReason: string;
 }
 
 export class VerifyOtpDto {
+    @ApiProperty({ example: '69e4141380600972892a5f32' })
+    @IsNotEmpty()
+    @IsString()
+    rideId: string;
+
     @ApiProperty({ example: '1234' })
     @IsNotEmpty()
     @IsString()
@@ -99,6 +114,11 @@ export class ChangeDestinationDto {
     @ValidateNested()
     @Type(() => LocationDto)
     destination: LocationDto;
+
+    @ApiProperty({ example: '69e4141380600972892a5f32' })
+    @IsNotEmpty()
+    @IsString()
+    rideId: string;
 }
 
 export class CancelRideDto {
@@ -109,6 +129,12 @@ export class CancelRideDto {
 }
 
 export class ReportDisputeDto {
+
+    @ApiProperty({ example: '69e4141380600972892a5f32' })
+    @IsNotEmpty()
+    @IsString()
+    rideId: string;
+
     @ApiProperty({ example: 'Incorrect Fare' })
     @IsNotEmpty()
     @IsString()
@@ -140,4 +166,16 @@ export class SubmitReviewDto {
     @IsOptional()
     @IsString()
     comment?: string;
+}
+
+export class RideActionDto {
+    @ApiProperty({ example: 'accept', enum: ['accept', 'reject'] })
+    @IsNotEmpty()
+    @IsString()
+    action: 'accept' | 'reject';
+
+    @ApiProperty({ example: '69e4141380600972892a5f32' })
+    @IsNotEmpty()
+    @IsString()
+    rideId: string;
 }

@@ -5,8 +5,7 @@ import { DriverController } from './driver/driver.controller';
 import { PaymentController } from './payment/payment.controller';
 import { PayoutController } from './payout/payout.controller';
 import { VehicleController } from './vehicle/vehicle.controller';
-import { PickNDropGateway } from './pick-n-drop.gateway';
-import { MapsService } from './maps.service';
+import { MapsModule } from '@shared/maps/maps.module';
 import { RideService } from './ride/ride.service';
 import { DriverService } from './driver/driver.service';
 import { PaymentService } from './payment/payment.service';
@@ -34,6 +33,7 @@ import { Coupon, CouponSchema } from '@mongodb/schemas/coupon.schema';
 @Module({
     imports: [
         forwardRef(() => SocketModule),
+        MapsModule,
         MongooseModule.forFeature([
             { name: Vehicle.name, schema: VehicleSchema },
             { name: RideRequest.name, schema: RideRequestSchema },
@@ -47,7 +47,7 @@ import { Coupon, CouponSchema } from '@mongodb/schemas/coupon.schema';
             { name: SubCategory.name, schema: SubCategorySchema },
             { name: Banner.name, schema: BannerSchema },
             { name: Coupon.name, schema: CouponSchema },
-             { name: Category.name, schema: CategorySchema },
+            { name: Category.name, schema: CategorySchema },
         ]),
     ],
     controllers: [
@@ -64,8 +64,6 @@ import { Coupon, CouponSchema } from '@mongodb/schemas/coupon.schema';
         PayoutService,
         VehicleService,
         VerticalBookingService,
-        PickNDropGateway,
-        MapsService
     ],
     exports: [
         RideService,

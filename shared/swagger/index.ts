@@ -114,7 +114,7 @@ export default async function initSwagger(app: INestApplication): Promise<void> 
   // ── User Doc (/docs/user) ──────────────────────────────────────────────────
   const userDoc = cloneDocWithPaths(
     masterDocument,
-    filterPathsByPrefix(masterDocument, USER_ROUTE_PREFIXES),
+    filterPathsByAudience(masterDocument, USER_ROUTE_PREFIXES, 'user'),
     {
       title: '🧑‍💼 User (Customer) API',
       description: '',
@@ -128,7 +128,7 @@ export default async function initSwagger(app: INestApplication): Promise<void> 
   // ── Provider Doc (/docs/provider) ─────────────────────────────────────────
   const providerDoc = cloneDocWithPaths(
     masterDocument,
-    filterPathsByPrefix(masterDocument, PROVIDER_ROUTE_PREFIXES),
+    filterPathsByAudience(masterDocument, PROVIDER_ROUTE_PREFIXES, 'provider'),
     {
       title: '🔧 Provider / Driver API',
       description: ''
@@ -158,17 +158,53 @@ export default async function initSwagger(app: INestApplication): Promise<void> 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 /**
- * Filter OpenAPI paths to only those starting with allowed prefixes.
- * Returns a new paths object.
+ * Filter OpenAPI paths to only those starting with allowed prefixes AND
+ * matching the doc audience (using x-doc-type extension if present).
  */
-function filterPathsByPrefix(
+function filterPathsByAudience(
   document: any,
   prefixes: string[],
+  audience: 'user' | 'provider'
 ): Record<string, any> {
   const result: Record<string, any> = {};
+
+  // Mapping of x-doc-type values to audiences
+  const audienceMap: Record<string, string[]> = {
+    user: ['user', 'customer', 'both'],
+    provider: ['provider', 'driver', 'vendor', 'both', 'merchant'],
+  };
+
+  const allowedTypes = audienceMap[audience] || [audience];
+
   for (const [path, item] of Object.entries<any>(document.paths ?? {})) {
-    const allowed = prefixes.some(p => path.startsWith(p));
-    if (allowed) result[path] = item;
+    const isPrefixAllowed = prefixes.some(p => path.startsWith(p));
+    if (!isPrefixAllowed) continue;
+
+    const filteredMethods: Record<string, any> = {};
+    let hasMatchingMethods = false;
+
+    for (const [method, operation] of Object.entries<any>(item)) {
+      if (typeof operation !== 'object' || operation === null) continue;
+
+      const docTypeAttr = operation['x-doc-type'];
+      if (docTypeAttr) {
+        const docTypes = docTypeAttr.split(',');
+        const isTargetAudience = docTypes.some(type => allowedTypes.includes(type.trim()));
+
+        if (isTargetAudience) {
+          filteredMethods[method] = operation;
+          hasMatchingMethods = true;
+        }
+      } else {
+        // Fallback: if no x-doc-type is specified, include by default via prefix
+        filteredMethods[method] = operation;
+        hasMatchingMethods = true;
+      }
+    }
+
+    if (hasMatchingMethods) {
+      result[path] = filteredMethods;
+    }
   }
   return result;
 }

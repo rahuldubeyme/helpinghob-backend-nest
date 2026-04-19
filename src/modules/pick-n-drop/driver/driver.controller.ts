@@ -5,40 +5,55 @@ import { Auth } from '@common/decorators';
 import { DriverService } from './driver.service';
 import { UpdateAvailabilityDto, UpdateDriverLocationDto } from './dto/driver.dto';
 import { PaginationDto } from '@dtos/pagination.dto';
+import { ApiType } from '@common/decorators';
+import { RideService } from '../ride/ride.service';
 
 @ApiTags('Pick-n-Drop')
 @Auth(ROLE.USER, ROLE.PROVIDER)
 @Controller('pick-n-drop')
 export class DriverController {
-    constructor(private readonly driverService: DriverService) { }
+    constructor(
+        private readonly driverService: DriverService,
+        private readonly rideService: RideService
+    ) { }
 
-    @Get('driver/info')
+    @Get('home')
+    @ApiType('provider')
+    @ApiOperation({ summary: 'home screen for driver' })
+    async getHomeScreen(@Req() req: any) {
+        return await this.rideService.getHomeScreen(req.user);
+    }
+
+    @Get('info')
+    @ApiType('user')
     @ApiOperation({ summary: 'Get driver info' })
     async getDriverInfo(@Query('driverId') driverId: string) {
         return await this.driverService.getDriverInfo(driverId);
     }
 
-    @Patch('driver/update-availability')
+    @Patch('update-availability')
     @ApiOperation({ summary: 'Update driver availability status Online/Offline' })
     async updateAvailability(@Body() body: UpdateAvailabilityDto, @Req() req: any) {
         return await this.driverService.updateAvailability(req.user.id, body.availability);
     }
 
-    @Patch('driver/update-location')
+    @Patch('update-location')
     @ApiOperation({ summary: 'Update driver current location' })
     async updateLocation(@Body() body: UpdateDriverLocationDto, @Req() req: any) {
         return await this.driverService.updateLocation(req.user.id, body.lat, body.lng);
     }
 
-    @Get('driver/earnings')
+    /* @Get('earnings')
+    @ApiType('provider')
     @ApiOperation({ summary: 'Get driver earnings summary' })
     async getDriverEarnings(@Req() req: any) {
         return await this.driverService.getDriverEarnings(req.user.id);
-    }
+    } */
 
-    @Get('driver/history')
+    /* @Get('history')
+    @ApiType('provider')
     @ApiOperation({ summary: 'Get driver ride history' })
     async getDriverRideHistory(@Req() req: any, @Query() query: PaginationDto) {
         return await this.driverService.getDriverRideHistory(req.user.id, query);
-    }
+    } */
 }

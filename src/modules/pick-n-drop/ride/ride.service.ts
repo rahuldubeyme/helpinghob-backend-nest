@@ -1,10 +1,10 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { RideRequest, RideRequestDocument, User, UserDocument, Review, ReviewDocument } from '@mongodb/schemas';
+import { RideRequest, RideRequestDocument, User, UserDocument, Review, ReviewDocument, Vehicle, VehicleDocument } from '@mongodb/schemas';
 import { SocketService } from '@socket/socket.service';
-import { MapsService } from '../maps.service';
-import { CreateRideDto, SubmitReviewDto } from './dto/ride.dto';
+import { MapsService } from '@shared/maps/maps.service';
+import { CreateRideDto, RideActionDto, SubmitReviewDto } from './dto/ride.dto';
 import { PaginationDto } from '@dtos/pagination.dto';
 
 @Injectable()
@@ -13,6 +13,7 @@ export class RideService {
         @InjectModel(RideRequest.name) private rideRequestModel: Model<RideRequestDocument>,
         @InjectModel(User.name) private userModel: Model<UserDocument>,
         @InjectModel(Review.name) private reviewModel: Model<ReviewDocument>,
+        @InjectModel(Vehicle.name) private vehicleModel: Model<VehicleDocument>,
         private readonly socketService: SocketService,
         private readonly mapsService: MapsService,
     ) { }
@@ -118,55 +119,104 @@ export class RideService {
         return await this.rideRequestModel.findById(rideId).populate('userId driverId vehicleId').lean();
     }
 
-    async getRideHistory(userId: string, query: PaginationDto) {
+    async getRideHistory(user: any, query: PaginationDto) {
         const { page = 1, limit = 10 } = query;
         const skip = (page - 1) * limit;
 
+        let defaultQuery: any = { userId: new Types.ObjectId(user.id) }
+
+        if (user?.role === 'provider') {
+            defaultQuery = { driverId: new Types.ObjectId(user.id) }
+        }
+
         const [history, total] = await Promise.all([
-            this.rideRequestModel.find({ userId: new Types.ObjectId(userId) })
+            this.rideRequestModel.find(defaultQuery)
                 .populate('vehicleId driverId')
                 .skip(skip)
                 .limit(limit)
                 .sort({ createdAt: -1 })
                 .lean(),
-            this.rideRequestModel.countDocuments({ userId: new Types.ObjectId(userId) })
+            this.rideRequestModel.countDocuments(defaultQuery)
         ]);
 
         return { history, total, page, limit };
     }
 
-    async acceptRide(rideId: string, driverId: string) {
-        const ride = await this.rideRequestModel.findById(rideId);
+    async handleRideRequest(driverId: string, dto: RideActionDto) {
+        const ride = await this.rideRequestModel.findById(dto.rideId);
         if (!ride) throw new BadRequestException('Ride not found');
-        if (ride.status !== 'pending') throw new BadRequestException('Ride already processed');
+        if (ride.requestStatus !== 'pending') throw new BadRequestException('Ride already processed');
 
-        ride.status = 'accepted';
-        ride.driverId = new Types.ObjectId(driverId);
-        await ride.save();
+        if (dto.action === 'accept') {
+            ride.requestStatus = 'accepted';
+            ride.status = 'on_the_way';
+            ride.driverId = new Types.ObjectId(driverId);
+        } else {
+            ride.requestStatus = 'rejected';
+            ride.status = 'cancelled';
+            ride.cancelledBy = 'driver';
+            ride.cancellationReason = 'Driver rejected the ride request',
+                ride.cancelledRideAt = new Date();
+        }
 
-        this.socketService.emitToUser(ride.userId.toString(), 'ride_accepted', ride);
-
-        return { ride, userId: ride.userId.toString() };
-    }
-
-    async updateStatus(rideId: string, status: string) {
-        const ride = await this.rideRequestModel.findById(rideId);
-        if (!ride) throw new BadRequestException('Ride not found');
-
-        if (status === 'reached_pickup') ride.reachedPickupAt = new Date();
-        ride.status = status;
         await ride.save();
         const result = ride.toObject();
 
-        this.socketService.emitToUser(ride.userId.toString(), 'ride_status_updated', { rideId, status });
+        const event = dto?.action === 'accept' ? 'ride_accepted' : 'ride_rejected';
+        this.socketService.emitToUser(ride.userId.toString(), event, result);
+
+        return { result, message: `Ride ${dto?.action}ed successfully` };
+    }
+
+    async handleRideAction(user: any, dto: any) {
+        const filter: any = { _id: dto.rideId };
+        // Check if user is provider (driver) or user (rider)
+        if (user.role === 2 || user.role === 'provider') {
+            filter.driverId = user.id;
+        } else if (user.role === 1 || user.role === 'user') {
+            filter.userId = user.id;
+        }
+
+        const ride = await this.rideRequestModel.findOne(filter);
+        if (!ride) throw new BadRequestException('Ride not found or unauthorized');
+
+        if (dto.status === 'reached') ride.reachedPickupAt = new Date();
+        ride.status = dto.status;
+
+        if (dto.status === 'cancelled') {
+            ride.cancelledBy = (user.role === 2 || user.role === 'provider') ? 'driver' : 'user';
+            ride.cancellationReason = dto.cancellationReason;
+            ride.cancelledRideAt = new Date();
+        }
+
+        await ride.save();
+        const result = ride.toObject();
+
+        // Notify the relevant party
+        const targetId = (user.id === ride.userId.toString())
+            ? ride.driverId?.toString()
+            : ride.userId.toString();
+
+        if (targetId) {
+            const event = dto.status === 'cancelled' ? 'ride_cancelled' : 'ride_request_status';
+            this.socketService.emitToUser(targetId, event, {
+                rideId: dto.rideId,
+                status: dto.status,
+                cancellationReason: dto.cancellationReason,
+                cancelledBy: ride.cancelledBy
+            });
+        }
+
+        // Also notify the caller if they are listening on a generic event
+        this.socketService.emitToUser(user.id, 'ride_request_status', { rideId: dto.rideId, status: dto.status });
 
         return result;
     }
 
-    async verifyPickupOtp(rideId: string, otp: string) {
-        const ride = await this.rideRequestModel.findById(rideId);
+    async verifyPickupOtp(dto: any) {
+        const ride = await this.rideRequestModel.findById(dto.rideId);
         if (!ride) throw new BadRequestException('Ride not found');
-        if (ride.pickupOtp !== otp) throw new BadRequestException('Invalid Pickup OTP');
+        if (ride.pickupOtp !== dto.otp) throw new BadRequestException('Invalid Pickup OTP');
 
         ride.status = 'started';
         await ride.save();
@@ -188,9 +238,49 @@ export class RideService {
         return { status: ride.status };
     }
 
-    async changeDestination(rideId: string, userId: string, newDestination: any) {
-        const ride = await this.rideRequestModel.findById(rideId);
-        if (!ride || ride.userId.toString() !== userId) throw new BadRequestException('Ride not found or unauthorized');
+    async changeDestination(user: any, dto: any) {
+        const ride = await this.rideRequestModel.findById(dto.rideId);
+        if (!ride || ride.userId.toString() !== user.id) throw new BadRequestException('Ride not found or unauthorized');
+
+        // Recalculate price if ride is in progress or accepted
+        let currentLocation: { lat: number; lng: number } | null = null;
+        if (ride.locationUpdates && ride.locationUpdates.length > 0) {
+            const lastUpdate = ride.locationUpdates[ride.locationUpdates.length - 1];
+            currentLocation = { lat: lastUpdate.lat, lng: lastUpdate.lng };
+        } else if (ride.driverId) {
+            const driver: any = await this.userModel.findById(ride.driverId).lean();
+            if (driver?.location?.coordinates) {
+                currentLocation = {
+                    lng: driver.location.coordinates[0],
+                    lat: driver.location.coordinates[1]
+                };
+            }
+        }
+
+        // Fallback to source if no current location found
+        if (!currentLocation) {
+            const sourceLoc = ride.source.location as any;
+            currentLocation = {
+                lat: sourceLoc.coordinates[1],
+                lng: sourceLoc.coordinates[0]
+            };
+        }
+
+        // Calculate distance to new destination
+        const metrics = await this.mapsService.getDistanceAndDuration(
+            { lat: currentLocation.lat, lng: currentLocation.lng },
+            { lat: dto.destination.lat, lng: dto.destination.lng }
+        );
+        const additionalDistanceKm = metrics.distance / 1000;
+
+        // Get pricing info
+        const vehicle = await this.vehicleModel.findById(ride.vehicleId).lean();
+        const perKmRate = (vehicle as any)?.perKmRate || 0;
+        const additionalFare = Math.round(additionalDistanceKm * perKmRate);
+
+        // Update price
+        ride.price.distanceFare = (ride.price.distanceFare || 0) + additionalFare;
+        ride.price.totalFare = (ride.price.totalFare || 0) + additionalFare;
 
         ride.destinationHistory.push({
             address: ride.destination.address,
@@ -199,42 +289,27 @@ export class RideService {
         });
 
         ride.destination = {
-            ...newDestination,
-            location: { type: 'Point', coordinates: [newDestination.lng, newDestination.lat] }
+            status: 'destination-changed',
+            ...dto.destination,
+            location: { type: 'Point', coordinates: [dto.destination.lng, dto.destination.lat] }
         };
 
         await ride.save();
         return ride.toObject();
     }
 
-    async cancelRide(rideId: string, userId: string, reason: string) {
-        const ride = await this.rideRequestModel.findById(rideId);
+    async reportDispute(userId: string, dto: any) {
+        const ride = await this.rideRequestModel.findById(dto.rideId);
         if (!ride) throw new BadRequestException('Ride not found');
 
-        if (ride.userId.toString() !== userId && ride.driverId?.toString() !== userId) {
-            throw new BadRequestException('Unauthorized cancellation');
-        }
-
+        ride.isDisputed = true;
         ride.status = 'cancelled';
-        ride.cancellationReason = reason;
-        await ride.save();
-
-        const targetId = ride.userId.toString() === userId ? ride.driverId?.toString() : ride.userId.toString();
-        if (targetId) {
-            this.socketService.emitToUser(targetId, 'ride_cancelled', { rideId, reason });
-        }
-
-        return { ride };
-    }
-
-    async reportDispute(rideId: string, userId: string, reason: string, description: string) {
-        const ride = await this.rideRequestModel.findById(rideId);
-        if (!ride) throw new BadRequestException('Ride not found');
-
+        ride.cancelledBy = 'user';
+        ride.cancellationReason = dto.reason;
+        ride.cancelledRideAt = new Date();
         ride.disputes.push({
             reporterId: new Types.ObjectId(userId),
-            reason,
-            description,
+            reason: dto.reason,
             status: 'open',
             createdAt: new Date()
         });

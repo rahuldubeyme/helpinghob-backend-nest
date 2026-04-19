@@ -60,9 +60,12 @@ export class PickNDropSocket {
         const driver = client.data.user;
         if (!driver) return { success: false, message: 'Unauthorized' };
 
-        const result = await this.rideService.acceptRide(data.rideId, driver.id);
-        if (result?.ride) {
-            this.server.to(result.userId).emit('ride_accepted', result.ride);
+        const result = await this.rideService.handleRideAction(driver.id, {
+            rideId: data.rideId,
+            action: 'accept'
+        });
+        if (result?.userId) {
+            this.server.to(result.userId.toString()).emit('ride_accepted', result);
         }
 
         return result;
@@ -117,23 +120,13 @@ export class PickNDropSocket {
         const user = client.data.user;
         if (!user) return { success: false, message: 'Unauthorized' };
 
-        const result = await this.rideService.cancelRide(data.rideId, user.id, data.reason);
-        if (result?.ride) {
-            const ride = result.ride;
-            const otherPartyId =
-                user.id === ride.userId.toString()
-                    ? ride.driverId?.toString()
-                    : ride.userId.toString();
-            if (otherPartyId) {
-                this.server.to(otherPartyId).emit('ride_cancelled', {
-                    rideId: data.rideId,
-                    reason: data.reason,
-                    cancelledBy: user.id,
-                });
-            }
-        }
+        const result = await this.rideService.handleRideAction(user, {
+            rideId: data.rideId,
+            status: 'cancelled',
+            cancellationReason: data.reason
+        });
 
-        return result;
+        return { success: true, data: result };
     }
 
     @SubscribeMessage('join_driver_pool')
