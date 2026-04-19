@@ -8,14 +8,14 @@ import { ApiType } from '@common/decorators';
 
 @ApiTags('Pick-n-Drop')
 @Auth(ROLE.USER, ROLE.PROVIDER)
-@Controller('pick-n-drop/ride')
+@Controller('pick-n-drop')
 export class PaymentController {
     constructor(private readonly paymentService: PaymentService) { }
 
-    /* @Post(':id/payment')
-    @ApiType(['user', 'provider'])
-    @ApiOperation({ summary: 'Process payment for a ride' })
-    async processPayment(@Param('id') rideId: string, @Body() body: ProcessPaymentDto) {
-        return await this.paymentService.processPayment(rideId, body.method);
-    } */
+    @Post('process-payment')
+    @ApiType(['provider'])
+    @ApiOperation({ summary: 'Process payment for a ride from driver' })
+    async processPayment(@Body() body: ProcessPaymentDto) {
+        return await this.paymentService.processPayment(body);
+    }
 }

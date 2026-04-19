@@ -32,28 +32,23 @@ export class DriverController {
     }
 
     @Patch('update-availability')
+    @ApiType('provider')
     @ApiOperation({ summary: 'Update driver availability status Online/Offline' })
     async updateAvailability(@Body() body: UpdateAvailabilityDto, @Req() req: any) {
         return await this.driverService.updateAvailability(req.user.id, body.availability);
     }
 
     @Patch('update-location')
+    @ApiType('provider')
     @ApiOperation({ summary: 'Update driver current location' })
     async updateLocation(@Body() body: UpdateDriverLocationDto, @Req() req: any) {
         return await this.driverService.updateLocation(req.user.id, body.lat, body.lng);
     }
 
-    /* @Get('earnings')
+    @Get('earnings')
     @ApiType('provider')
     @ApiOperation({ summary: 'Get driver earnings summary' })
     async getDriverEarnings(@Req() req: any) {
         return await this.driverService.getDriverEarnings(req.user.id);
-    } */
-
-    /* @Get('history')
-    @ApiType('provider')
-    @ApiOperation({ summary: 'Get driver ride history' })
-    async getDriverRideHistory(@Req() req: any, @Query() query: PaginationDto) {
-        return await this.driverService.getDriverRideHistory(req.user.id, query);
-    } */
+    }
 }

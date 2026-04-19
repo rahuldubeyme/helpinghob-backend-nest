@@ -30,21 +30,4 @@ export class DriverService {
         const driver = await this.userModel.findById(driverId);
         return driver?.earnings || { total: 0, today: 0, pending: 0 };
     }
-
-    async getDriverRideHistory(driverId: string, query: PaginationDto) {
-        const { page = 1, limit = 10 } = query;
-        const skip = (page - 1) * limit;
-
-        const [history, total] = await Promise.all([
-            this.rideRequestModel.find({ driverId: new Types.ObjectId(driverId) })
-                .populate('userId vehicleId')
-                .skip(skip)
-                .limit(limit)
-                .sort({ createdAt: -1 })
-                .lean(),
-            this.rideRequestModel.countDocuments({ driverId: new Types.ObjectId(driverId) })
-        ]);
-
-        return { history, total, page, limit };
-    }
 }

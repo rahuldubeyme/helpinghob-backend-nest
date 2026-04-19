@@ -14,8 +14,8 @@ export class PaymentService {
         private readonly socketService: SocketService,
     ) { }
 
-    async processPayment(rideId: string, method: string) {
-        const ride = await this.rideRequestModel.findById(rideId);
+    async processPayment(dto: any) {
+        const ride = await this.rideRequestModel.findById(dto.rideId);
         if (!ride) throw new BadRequestException('Ride not found');
 
         const transaction = new this.transactionModel({
@@ -23,14 +23,14 @@ export class PaymentService {
             type: 'credit',
             category: 'booking',
             status: 'success',
-            referenceId: rideId,
-            description: `Payment for ride ${rideId} via ${method}`
+            referenceId: dto.rideId,
+            description: `Payment for ride ${dto.rideId} via ${dto.method}`
         });
 
         await transaction.save();
 
         await this.rideRequestModel.updateOne(
-            { _id: rideId },
+            { _id: dto.rideId },
             { $set: { status: 'completed', paymentStatus: 'paid' } }
         );
 
@@ -60,7 +60,7 @@ export class PaymentService {
                     type: 'credit',
                     category: 'incentive',
                     status: 'success',
-                    referenceId: rideId,
+                    referenceId: dto.rideId,
                     description: `Incentive for completing ${ridesThreshold} rides`
                 });
                 await incentiveTx.save();
@@ -70,7 +70,7 @@ export class PaymentService {
         }
 
         let qrCodeUrl: string | null = null;
-        if (method !== 'CASH') {
+        if (dto.method !== 'CASH') {
             qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=helpinghob@bank%26am=${ride.price?.totalFare}%26tn=RidePayment`;
         }
 
