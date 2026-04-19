@@ -21,7 +21,9 @@ import {
     Review, ReviewSchema,
     Transaction, TransactionSchema,
     Payout, PayoutSchema,
-    AdminSetting, AdminSettingSchema
+    AdminSetting, AdminSettingSchema,
+    CategorySchema,
+    Category
 } from '@mongodb/schemas';
 import { Booking, BookingSchema } from '@mongodb/schemas/booking.schema';
 import { Order, OrderSchema } from '@mongodb/schemas/order.schema';
@@ -45,6 +47,7 @@ import { Coupon, CouponSchema } from '@mongodb/schemas/coupon.schema';
             { name: SubCategory.name, schema: SubCategorySchema },
             { name: Banner.name, schema: BannerSchema },
             { name: Coupon.name, schema: CouponSchema },
+             { name: Category.name, schema: CategorySchema },
         ]),
     ],
     controllers: [

@@ -9,6 +9,8 @@ import { Server, Socket } from 'socket.io';
 import { UsePipes, ValidationPipe } from '@nestjs/common';
 import { RideService } from '../../../src/modules/pick-n-drop/ride/ride.service';
 import { DriverService } from '../../../src/modules/pick-n-drop/driver/driver.service';
+import { CreateRideDto } from '../../../src/modules/pick-n-drop/ride/dto/ride.dto';
+import { UpdateDriverLocationDto } from '../../../src/modules/pick-n-drop/driver/dto/driver.dto';
 
 @WebSocketGateway({ cors: { origin: '*' } })
 export class PickNDropSocket {
@@ -23,7 +25,7 @@ export class PickNDropSocket {
     @SubscribeMessage('incomming_ride_request')
     @UsePipes(new ValidationPipe())
     async handleIncommingRequestRide(
-        @MessageBody() dto: any,
+        @MessageBody() dto: CreateRideDto,
         @ConnectedSocket() client: Socket,
     ) {
         const user = client.data.user;
@@ -38,7 +40,7 @@ export class PickNDropSocket {
     @SubscribeMessage('request_ride')
     @UsePipes(new ValidationPipe())
     async handleRequestRide(
-        @MessageBody() dto: any,
+        @MessageBody() dto: CreateRideDto,
         @ConnectedSocket() client: Socket,
     ) {
         const user = client.data.user;
@@ -59,7 +61,7 @@ export class PickNDropSocket {
         if (!driver) return { success: false, message: 'Unauthorized' };
 
         const result = await this.rideService.acceptRide(data.rideId, driver.id);
-        if (result.success) {
+        if (result?.ride) {
             this.server.to(result.userId).emit('ride_accepted', result.ride);
         }
 
@@ -68,7 +70,7 @@ export class PickNDropSocket {
 
     @SubscribeMessage('update_location')
     async handleUpdateLocation(
-        @MessageBody() data: { lat: number; lng: number; rideId?: string },
+        @MessageBody() data: UpdateDriverLocationDto,
         @ConnectedSocket() client: Socket,
     ) {
         const user = client.data.user;
@@ -116,7 +118,7 @@ export class PickNDropSocket {
         if (!user) return { success: false, message: 'Unauthorized' };
 
         const result = await this.rideService.cancelRide(data.rideId, user.id, data.reason);
-        if (result.success) {
+        if (result?.ride) {
             const ride = result.ride;
             const otherPartyId =
                 user.id === ride.userId.toString()

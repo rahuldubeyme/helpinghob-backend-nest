@@ -157,6 +157,9 @@ export class User {
     @Prop({ default: 0 })
     startingPrice: number;
 
+    @Prop({ type: Types.ObjectId, ref: 'Category', index: true })
+    category: Types.ObjectId;
+
     @Prop({ index: true })
     categoryName: string;
 

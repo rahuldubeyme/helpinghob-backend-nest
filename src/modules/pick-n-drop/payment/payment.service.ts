@@ -74,7 +74,7 @@ export class PaymentService {
             qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=helpinghob@bank%26am=${ride.price?.totalFare}%26tn=RidePayment`;
         }
 
-        const result = { success: true, transaction, qrCodeUrl };
+        const result = { transaction: transaction.toObject(), qrCodeUrl };
 
         this.socketService.emitToUser(ride.userId.toString(), 'payment_completed', result);
         this.socketService.emitToUser(ride.driverId.toString(), 'payment_completed', result);

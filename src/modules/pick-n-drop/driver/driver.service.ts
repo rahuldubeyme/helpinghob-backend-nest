@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { User, UserDocument, RideRequest, RideRequestDocument } from '@mongodb/schemas';
+import { PaginationDto } from '@dtos/pagination.dto';
 
 @Injectable()
 export class DriverService {
@@ -10,22 +11,12 @@ export class DriverService {
         @InjectModel(RideRequest.name) private rideRequestModel: Model<RideRequestDocument>,
     ) { }
 
-    async updateAvailability(userId: string, availability: string) {
-        return await this.userModel.findByIdAndUpdate(userId, { $set: { availability } }, { new: true });
+    async getDriverInfo(driverId: string) {
+        return await this.userModel.findById(driverId).populate('vehicle.vehicleId').lean();
     }
 
-    async getAvailableDrivers(vehicleId: string, lat: number, lng: number) {
-        return this.userModel.find({
-            roleName: 'driver',
-            availability: 'Online',
-            'vehicle.vehicleId': new Types.ObjectId(vehicleId),
-            location: {
-                $near: {
-                    $geometry: { type: 'Point', coordinates: [lng, lat] },
-                    $maxDistance: 10000 // 10km radius
-                }
-            }
-        }).select('fullName avatar rating lastLocation vehicle').lean();
+    async updateAvailability(userId: string, availability: string) {
+        return (await this.userModel.findByIdAndUpdate(userId, { $set: { availability } }, { new: true }))?.toObject();
     }
 
     async updateLocation(userId: string, lat: number, lng: number) {
@@ -40,9 +31,20 @@ export class DriverService {
         return driver?.earnings || { total: 0, today: 0, pending: 0 };
     }
 
-    async getDriverRideHistory(driverId: string) {
-        return await this.rideRequestModel.find({ driverId: new Types.ObjectId(driverId) })
-            .populate('userId vehicleId')
-            .sort({ createdAt: -1 });
+    async getDriverRideHistory(driverId: string, query: PaginationDto) {
+        const { page = 1, limit = 10 } = query;
+        const skip = (page - 1) * limit;
+
+        const [history, total] = await Promise.all([
+            this.rideRequestModel.find({ driverId: new Types.ObjectId(driverId) })
+                .populate('userId vehicleId')
+                .skip(skip)
+                .limit(limit)
+                .sort({ createdAt: -1 })
+                .lean(),
+            this.rideRequestModel.countDocuments({ driverId: new Types.ObjectId(driverId) })
+        ]);
+
+        return { history, total, page, limit };
     }
 }

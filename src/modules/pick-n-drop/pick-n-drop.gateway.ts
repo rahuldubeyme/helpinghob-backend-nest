@@ -11,6 +11,8 @@ import { Server, Socket } from 'socket.io';
 import { UsePipes, ValidationPipe } from '@nestjs/common';
 import { RideService } from './ride/ride.service';
 import { DriverService } from './driver/driver.service';
+import { CreateRideDto } from './ride/dto/ride.dto';
+import { UpdateDriverLocationDto } from './driver/dto/driver.dto';
 import { JwtUtility } from '@common/utils';
 
 @WebSocketGateway({
@@ -45,7 +47,7 @@ export class PickNDropGateway implements OnGatewayConnection, OnGatewayDisconnec
     @SubscribeMessage('request_ride')
     @UsePipes(new ValidationPipe())
     async handleRequestRide(
-        @MessageBody() dto: any,
+        @MessageBody() dto: CreateRideDto,
         @ConnectedSocket() client: Socket,
     ) {
         const user = client.data.user;
@@ -66,7 +68,7 @@ export class PickNDropGateway implements OnGatewayConnection, OnGatewayDisconnec
         if (!driver) return { success: false, message: 'Unauthorized' };
 
         const result = await this.rideService.acceptRide(data.rideId, driver.id);
-        if (result.success) {
+        if (result?.ride) {
             this.server.to(result.userId).emit('ride_accepted', result.ride);
         }
 
@@ -75,7 +77,7 @@ export class PickNDropGateway implements OnGatewayConnection, OnGatewayDisconnec
 
     @SubscribeMessage('update_location')
     async handleUpdateLocation(
-        @MessageBody() data: { lat: number; lng: number; rideId?: string },
+        @MessageBody() data: UpdateDriverLocationDto,
         @ConnectedSocket() client: Socket,
     ) {
         const user = client.data.user;
@@ -123,7 +125,7 @@ export class PickNDropGateway implements OnGatewayConnection, OnGatewayDisconnec
         if (!user) return { success: false, message: 'Unauthorized' };
 
         const result = await this.rideService.cancelRide(data.rideId, user.id, data.reason);
-        if (result.success) {
+        if (result?.ride) {
             const ride = result.ride;
             const otherPartyId =
                 user.id === ride.userId.toString()

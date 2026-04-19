@@ -3,7 +3,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ROLE } from '@common/constant';
 import { Auth } from '@common/decorators';
 import { VehicleService } from './vehicle.service';
-import { RidePricingDto } from '../dto/pick-n-drop.dto';
+import { RidePricingDto } from './dto/vehicle.dto';
 
 @ApiTags('Pick-n-Drop')
 @Auth(ROLE.USER, ROLE.PROVIDER)
@@ -17,7 +17,7 @@ export class VehicleController {
         return await this.vehicleService.getVehicles();
     }
 
-    @Post('find-vehicle')
+    @Post('find-driver')
     @ApiOperation({ summary: 'Get estimated pricing for all vehicle types' })
     async getVehiclePricing(@Body() body: RidePricingDto) {
         return await this.vehicleService.getVehiclePricing(body);

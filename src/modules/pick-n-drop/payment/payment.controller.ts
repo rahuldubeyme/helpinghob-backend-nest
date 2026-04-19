@@ -3,6 +3,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ROLE } from '@common/constant';
 import { Auth } from '@common/decorators';
 import { PaymentService } from './payment.service';
+import { ProcessPaymentDto } from './dto/payment.dto';
 
 @ApiTags('Pick-n-Drop')
 @Auth(ROLE.USER, ROLE.PROVIDER)
@@ -12,7 +13,7 @@ export class PaymentController {
 
     @Post(':id/payment')
     @ApiOperation({ summary: 'Process payment for a ride' })
-    async processPayment(@Param('id') rideId: string, @Body('method') method: string) {
-        return await this.paymentService.processPayment(rideId, method);
+    async processPayment(@Param('id') rideId: string, @Body() body: ProcessPaymentDto) {
+        return await this.paymentService.processPayment(rideId, body.method);
     }
 }

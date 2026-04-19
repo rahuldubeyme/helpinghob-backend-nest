@@ -48,7 +48,7 @@ export class RideRequest {
     @Prop()
     estimatedDuration: number; // in seconds
 
-    @Prop({ enum: ['pending', 'accepted', 'rejected', 'started', 'reached_pickup', 'completed', 'cancelled'], default: 'pending' })
+    @Prop({ enum: ['pending', 'accepted', 'rejected', 'started', 'reached_pickup', 'completed', 'cancelled', 'REQUESTED', 'PENDING', 'ACCEPTED', 'REJECTED', 'CANCELLED'], default: 'pending' })
     status: string;
 
     @Prop()
@@ -65,9 +65,6 @@ export class RideRequest {
 
     @Prop()
     pickupOtp: string;
-
-    @Prop()
-    dropOffOtp: string;
 
     @Prop()
     cancellationReason: string;

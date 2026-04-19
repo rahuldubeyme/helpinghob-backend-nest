@@ -3,6 +3,8 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ROLE } from '@common/constant';
 import { Auth } from '@common/decorators';
 import { DriverService } from './driver.service';
+import { UpdateAvailabilityDto, UpdateDriverLocationDto } from './dto/driver.dto';
+import { PaginationDto } from '@dtos/pagination.dto';
 
 @ApiTags('Pick-n-Drop')
 @Auth(ROLE.USER, ROLE.PROVIDER)
@@ -10,22 +12,22 @@ import { DriverService } from './driver.service';
 export class DriverController {
     constructor(private readonly driverService: DriverService) { }
 
-    @Get('available-drivers')
-    @ApiOperation({ summary: 'Find nearby online drivers for a vehicle type' })
-    async getAvailableDrivers(@Query('vehicleId') vehicleId: string, @Query('lat') lat: number, @Query('lng') lng: number) {
-        return await this.driverService.getAvailableDrivers(vehicleId, Number(lat), Number(lng));
+    @Get('driver/info')
+    @ApiOperation({ summary: 'Get driver info' })
+    async getDriverInfo(@Query('driverId') driverId: string) {
+        return await this.driverService.getDriverInfo(driverId);
     }
 
-    @Patch('driver/availability')
-    @ApiOperation({ summary: 'Update driver availability status' })
-    async updateAvailability(@Body('availability') availability: string, @Req() req: any) {
-        return await this.driverService.updateAvailability(req.user.id, availability);
+    @Patch('driver/update-availability')
+    @ApiOperation({ summary: 'Update driver availability status Online/Offline' })
+    async updateAvailability(@Body() body: UpdateAvailabilityDto, @Req() req: any) {
+        return await this.driverService.updateAvailability(req.user.id, body.availability);
     }
 
-    @Patch('driver/location')
+    @Patch('driver/update-location')
     @ApiOperation({ summary: 'Update driver current location' })
-    async updateLocation(@Body('lat') lat: number, @Body('lng') lng: number, @Req() req: any) {
-        return await this.driverService.updateLocation(req.user.id, lat, lng);
+    async updateLocation(@Body() body: UpdateDriverLocationDto, @Req() req: any) {
+        return await this.driverService.updateLocation(req.user.id, body.lat, body.lng);
     }
 
     @Get('driver/earnings')
@@ -36,7 +38,7 @@ export class DriverController {
 
     @Get('driver/history')
     @ApiOperation({ summary: 'Get driver ride history' })
-    async getDriverRideHistory(@Req() req: any) {
-        return await this.driverService.getDriverRideHistory(req.user.id);
+    async getDriverRideHistory(@Req() req: any, @Query() query: PaginationDto) {
+        return await this.driverService.getDriverRideHistory(req.user.id, query);
     }
 }

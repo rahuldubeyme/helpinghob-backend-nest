@@ -4,6 +4,8 @@ import { Model, Types } from 'mongoose';
 import { RideRequest, RideRequestDocument, User, UserDocument, Review, ReviewDocument } from '@mongodb/schemas';
 import { SocketService } from '@socket/socket.service';
 import { MapsService } from '../maps.service';
+import { CreateRideDto, SubmitReviewDto } from './dto/ride.dto';
+import { PaginationDto } from '@dtos/pagination.dto';
 
 @Injectable()
 export class RideService {
@@ -15,16 +17,15 @@ export class RideService {
         private readonly mapsService: MapsService,
     ) { }
 
-    async createRideRequest(userId: string, dto: any) {
-        const { source, destination, vehicleId, price, paymentMethod, driverId } = dto;
+    async createRideRequest(userId: string, dto: CreateRideDto) {
+        const { source, destination, vehicleId, price, driverId } = dto;
         const pickupOtp = Math.floor(1000 + Math.random() * 9000).toString();
-        const dropOffOtp = Math.floor(1000 + Math.random() * 9000).toString();
 
         // Fetch real distance/duration
         let metrics = { distance: 10000, duration: 900 }; // Fallback
         try {
-            const org = source.lat ? { lat: source.lat, lng: source.lng } : { lat: source.location[1], lng: source.location[0] };
-            const dest = destination.lat ? { lat: destination.lat, lng: destination.lng } : { lat: destination.location[1], lng: destination.location[0] };
+            const org = { lat: source.lat, lng: source.lng };
+            const dest = { lat: destination.lat, lng: destination.lng };
             metrics = await this.mapsService.getDistanceAndDuration(org, dest);
         } catch (e) { }
 
@@ -36,14 +37,14 @@ export class RideService {
                 ...source,
                 location: {
                     type: 'Point',
-                    coordinates: source.location || [source.lng, source.lat]
+                    coordinates: [source.lng, source.lat]
                 }
             },
             destination: {
                 ...destination,
                 location: {
                     type: 'Point',
-                    coordinates: destination.location || [destination.lng, destination.lat]
+                    coordinates: [destination.lng, destination.lat]
                 }
             },
             price: {
@@ -55,30 +56,40 @@ export class RideService {
             estimatedDuration: metrics.duration,
             status: 'pending',
             pickupOtp,
-            dropOffOtp,
-            paymentMethod: paymentMethod || 'CASH',
             paymentStatus: 'pending'
         });
 
         const savedRequest = await rideRequest.save();
+        const result = savedRequest.toObject();
 
         if (driverId) {
-            this.socketService.emitToUser(driverId, 'new_ride_request', savedRequest);
+            this.socketService.emitToUser(driverId, 'incomming_request', result);
         } else {
-            this.socketService.broadcast('ride_available', savedRequest);
+            this.socketService.broadcast('ride_available', result);
         }
 
-        return savedRequest;
+        return result;
     }
 
     async getRide(rideId: string) {
-        return await this.rideRequestModel.findById(rideId).populate('userId driverId vehicleId');
+        return await this.rideRequestModel.findById(rideId).populate('userId driverId vehicleId').lean();
     }
 
-    async getRideHistory(userId: string) {
-        return await this.rideRequestModel.find({ userId: new Types.ObjectId(userId) })
-            .populate('vehicleId driverId')
-            .sort({ createdAt: -1 });
+    async getRideHistory(userId: string, query: PaginationDto) {
+        const { page = 1, limit = 10 } = query;
+        const skip = (page - 1) * limit;
+
+        const [history, total] = await Promise.all([
+            this.rideRequestModel.find({ userId: new Types.ObjectId(userId) })
+                .populate('vehicleId driverId')
+                .skip(skip)
+                .limit(limit)
+                .sort({ createdAt: -1 })
+                .lean(),
+            this.rideRequestModel.countDocuments({ userId: new Types.ObjectId(userId) })
+        ]);
+
+        return { history, total, page, limit };
     }
 
     async acceptRide(rideId: string, driverId: string) {
@@ -92,7 +103,7 @@ export class RideService {
 
         this.socketService.emitToUser(ride.userId.toString(), 'ride_accepted', ride);
 
-        return { success: true, ride, userId: ride.userId.toString() };
+        return { ride, userId: ride.userId.toString() };
     }
 
     async updateStatus(rideId: string, status: string) {
@@ -102,10 +113,11 @@ export class RideService {
         if (status === 'reached_pickup') ride.reachedPickupAt = new Date();
         ride.status = status;
         await ride.save();
+        const result = ride.toObject();
 
         this.socketService.emitToUser(ride.userId.toString(), 'ride_status_updated', { rideId, status });
 
-        return ride;
+        return result;
     }
 
     async verifyPickupOtp(rideId: string, otp: string) {
@@ -118,20 +130,19 @@ export class RideService {
 
         this.socketService.emitToUser(ride.userId.toString(), 'ride_started', ride);
 
-        return { success: true, status: ride.status };
+        return { status: ride.status };
     }
 
     async verifyDropOffOtp(rideId: string, otp: string) {
         const ride = await this.rideRequestModel.findById(rideId);
         if (!ride) throw new BadRequestException('Ride not found');
-        if (ride.dropOffOtp !== otp) throw new BadRequestException('Invalid Drop-off OTP');
 
         ride.status = 'completed';
         await ride.save();
 
         this.socketService.emitToUser(ride.userId.toString(), 'ride_reached_destination', ride);
 
-        return { success: true, status: ride.status };
+        return { status: ride.status };
     }
 
     async changeDestination(rideId: string, userId: string, newDestination: any) {
@@ -146,11 +157,11 @@ export class RideService {
 
         ride.destination = {
             ...newDestination,
-            location: { type: 'Point', coordinates: newDestination.location }
+            location: { type: 'Point', coordinates: [newDestination.lng, newDestination.lat] }
         };
 
         await ride.save();
-        return ride;
+        return ride.toObject();
     }
 
     async cancelRide(rideId: string, userId: string, reason: string) {
@@ -170,7 +181,7 @@ export class RideService {
             this.socketService.emitToUser(targetId, 'ride_cancelled', { rideId, reason });
         }
 
-        return { success: true, ride };
+        return { ride };
     }
 
     async reportDispute(rideId: string, userId: string, reason: string, description: string) {
@@ -186,10 +197,10 @@ export class RideService {
         });
 
         await ride.save();
-        return { success: true, message: 'Dispute reported' };
+        return { message: 'Dispute reported' };
     }
 
-    async submitReview(userId: string, dto: any) {
+    async submitReview(userId: string, dto: SubmitReviewDto) {
         const { rideId, driverId, rating, comment } = dto;
 
         const review = new this.reviewModel({
@@ -210,6 +221,6 @@ export class RideService {
             { $set: { rating: avgRating, totalReviews: allReviews.length } }
         );
 
-        return review;
+        return review.toObject();
     }
 }
