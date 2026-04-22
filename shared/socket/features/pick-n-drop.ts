@@ -10,6 +10,7 @@ import { Types } from 'mongoose';
 import { UsePipes, ValidationPipe } from '@nestjs/common';
 import { RideService } from '../../../src/modules/pick-n-drop/ride/ride.service';
 import { DriverService } from '../../../src/modules/pick-n-drop/driver/driver.service';
+import { LocationThrottlingService } from '@shared/location/location-throttling.service';
 import { CreateRideDto, BookRideDto, RideActionDto } from '../../../src/modules/pick-n-drop/ride/dto/ride.dto';
 import {
     SocketAcceptRideDto,
@@ -26,6 +27,7 @@ export class PickNDropSocket {
     constructor(
         private readonly rideService: RideService,
         private readonly driverService: DriverService,
+        private readonly throttlingService: LocationThrottlingService,
     ) { }
 
     // this will used by driver when real time any user raise request for ride
@@ -72,6 +74,11 @@ export class PickNDropSocket {
     ) {
         const user = client.data.user;
         if (!user) return;
+
+        // Apply spatial and temporal throttling
+        if (!this.throttlingService.shouldUpdateLocation(user.id, data.lat, data.lng)) {
+            return;
+        }
 
         await this.driverService.updateLocation(user.id, data.lat, data.lng);
 

@@ -15,6 +15,7 @@ import { DatabaseModule } from '@mongodb/database.module';
 import { I18nModule } from '@i18n/i18n.module';
 import { RateLimitModule } from '@rate-limit/rate-limit.module';
 import { SocketModule } from '@socket/socket.module';
+import { LocationModule } from '@shared/location/location.module';
 import { AuthModule } from '@modules/auth/auth.module';
 import { MailModule } from '@shared/mail/mail.module';
 import { SmsModule } from '@shared/sms/sms.module';
@@ -50,6 +51,7 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
     SmsModule,
     FcmModule,
     MapsModule,
+    LocationModule,
 
     I18nModule,
     RateLimitModule,

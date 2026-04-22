@@ -1,16 +1,18 @@
 import { Module, Global } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { MapsService } from './maps.service';
-import { AdminSetting, AdminSettingSchema } from '@mongodb/schemas/admin-settings.schema';
+import { MapsCacheService } from './maps-cache.service';
+import { AdminSetting, AdminSettingSchema, MapRoute, MapRouteSchema } from '@mongodb/schemas';
 
 @Global()
 @Module({
     imports: [
         MongooseModule.forFeature([
-            { name: AdminSetting.name, schema: AdminSettingSchema }
+            { name: AdminSetting.name, schema: AdminSettingSchema },
+            { name: MapRoute.name, schema: MapRouteSchema }
         ]),
     ],
-    providers: [MapsService],
-    exports: [MapsService],
+    providers: [MapsService, MapsCacheService],
+    exports: [MapsService, MapsCacheService],
 })
 export class MapsModule { }

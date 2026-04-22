@@ -65,13 +65,15 @@ export class RideService {
         const { source, destination, vehicleId, totalFare, driverId } = dto;
         const pickupOtp = Math.floor(1000 + Math.random() * 9000).toString();
 
-        // Fetch real distance/duration
-        let metrics = { distance: 10000, duration: 900 }; // Fallback
+        // Fetch real distance/duration only for initial booking
+        let metrics = { distance: 10000, duration: 900 };
         try {
             const org = { lat: source.lat, lng: source.lng };
             const dest = { lat: destination.lat, lng: destination.lng };
-            metrics = await this.mapsService.getDistanceAndDuration(org, dest);
-        } catch (e) { }
+            metrics = await this.mapsService.getDistanceAndDuration(org, dest, true);
+        } catch (e) {
+            console.error('Initial maps check failed, using fallback', e);
+        }
 
         const rideRequest = new this.rideRequestModel({
             userId: new Types.ObjectId(userId),
@@ -265,8 +267,8 @@ export class RideService {
             };
         }
 
-        // Calculate distance to new destination
-        const metrics = await this.mapsService.getDistanceAndDuration(
+        // Calculate distance to new destination via local estimation (FREE)
+        const metrics = this.mapsService.getEstimatedMetrics(
             { lat: currentLocation.lat, lng: currentLocation.lng },
             { lat: dto.destination.lat, lng: dto.destination.lng }
         );

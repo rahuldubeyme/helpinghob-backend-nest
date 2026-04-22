@@ -12,6 +12,7 @@ import { PaymentService } from './payment/payment.service';
 import { PayoutService } from './payout/payout.service';
 import { VehicleService } from './vehicle/vehicle.service';
 import { VerticalBookingService } from '../verticals/vertical-booking.service';
+import { LocationModule } from '@shared/location/location.module';
 import { SocketModule } from '@socket/socket.module';
 import {
     RideRequest, RideRequestSchema,
@@ -22,7 +23,8 @@ import {
     Payout, PayoutSchema,
     AdminSetting, AdminSettingSchema,
     CategorySchema,
-    Category
+    Category,
+    LiveLocation, LiveLocationSchema
 } from '@mongodb/schemas';
 import { Booking, BookingSchema } from '@mongodb/schemas/booking.schema';
 import { Order, OrderSchema } from '@mongodb/schemas/order.schema';
@@ -34,6 +36,7 @@ import { Coupon, CouponSchema } from '@mongodb/schemas/coupon.schema';
     imports: [
         forwardRef(() => SocketModule),
         MapsModule,
+        LocationModule,
         MongooseModule.forFeature([
             { name: Vehicle.name, schema: VehicleSchema },
             { name: RideRequest.name, schema: RideRequestSchema },
@@ -48,6 +51,7 @@ import { Coupon, CouponSchema } from '@mongodb/schemas/coupon.schema';
             { name: Banner.name, schema: BannerSchema },
             { name: Coupon.name, schema: CouponSchema },
             { name: Category.name, schema: CategorySchema },
+            { name: LiveLocation.name, schema: LiveLocationSchema },
         ]),
     ],
     controllers: [
@@ -71,7 +75,7 @@ import { Coupon, CouponSchema } from '@mongodb/schemas/coupon.schema';
         PaymentService,
         PayoutService,
         VehicleService,
-        VerticalBookingService
+        VerticalBookingService,
     ],
 })
 export class PickNDropModule { }
