@@ -65,9 +65,9 @@ export class UpdateRideStatusDto {
     rideId: string;
 
     @ApiProperty({ example: 'Issue raised' })
-    @IsNotEmpty()
+    @IsOptional()
     @IsString()
-    cancellationReason: string;
+    cancellationReason?: string;
 }
 
 export class VerifyOtpDto {

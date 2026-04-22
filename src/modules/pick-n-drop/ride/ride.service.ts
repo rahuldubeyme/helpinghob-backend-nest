@@ -173,12 +173,12 @@ export class RideService {
     }
 
     async handleRideAction(user: any, dto: any) {
-        const filter: any = { _id: dto.rideId };
+        const filter: any = { _id: new Types.ObjectId(dto.rideId) };
         // Check if user is provider (driver) or user (rider)
         if (user.role === 2 || user.role === 'provider') {
-            filter.driverId = user.id;
+            filter.driverId = new Types.ObjectId(user.id);
         } else if (user.role === 1 || user.role === 'user') {
-            filter.userId = user.id;
+            filter.userId = new Types.ObjectId(user.id);
         }
 
         const ride = await this.rideRequestModel.findOne(filter);

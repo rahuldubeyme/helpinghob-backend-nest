@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 
-export type RideRequestDocument = RideRequest & Document;
+export type     RideRequestDocument = RideRequest & Document;
 
 @Schema({ collection: 'ride_requests', timestamps: true })
 export class RideRequest {
