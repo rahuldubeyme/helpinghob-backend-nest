@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import axios from 'axios';
-import { AdminSetting, AdminSettingDocument } from '@mongodb/schemas/admin-settings.schema';
+import { AdminSetting, AdminSettingDocument, MapApiHit, MapApiHitDocument } from '@mongodb/schemas';
 
 import { getHaversineDistance, estimateTravelTime } from '@common/utils/location.util';
 
@@ -14,6 +14,7 @@ export class MapsService {
 
     constructor(
         @InjectModel(AdminSetting.name) private adminSettingModel: Model<AdminSettingDocument>,
+        @InjectModel(MapApiHit.name) private mapApiHitModel: Model<MapApiHitDocument>,
         private readonly cacheService: MapsCacheService,
     ) { }
 
@@ -40,7 +41,8 @@ export class MapsService {
     async getDistanceAndDuration(
         origin: { lat: number; lng: number },
         destination: { lat: number; lng: number },
-        useRealApi: boolean = false
+        useRealApi: boolean = false,
+        metadata?: { userId?: string; providerId?: string; referenceId?: string; moduleType?: string }
     ): Promise<{ distance: number; duration: number }> {
         // Default to local estimation to save costs unless explicitly requested
         if (!useRealApi) {
@@ -67,6 +69,17 @@ export class MapsService {
                     distance: element.distance.value,
                     duration: element.duration.value,
                 };
+
+                // Audit the API hit
+                await this.mapApiHitModel.create({
+                    userId: metadata?.userId ? new Types.ObjectId(metadata.userId) : undefined,
+                    providerId: metadata?.providerId ? new Types.ObjectId(metadata.providerId) : undefined,
+                    referenceId: metadata?.referenceId ? new Types.ObjectId(metadata.referenceId) : undefined,
+                    moduleType: metadata?.moduleType || 'unknown',
+                    apiType: 'distance_matrix',
+                    params: { origin, destination }
+                }).catch(e => this.logger.error('Failed to log API hit', e));
+
                 // Store in cache
                 await this.cacheService.cacheRoute(origin, destination, metrics);
                 return metrics;

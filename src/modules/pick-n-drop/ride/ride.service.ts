@@ -64,18 +64,25 @@ export class RideService {
     async createRideRequest(userId: string, dto: BookRideDto) {
         const { source, destination, vehicleId, totalFare, driverId } = dto;
         const pickupOtp = Math.floor(1000 + Math.random() * 9000).toString();
+        const rideId = new Types.ObjectId();
 
         // Fetch real distance/duration only for initial booking
         let metrics = { distance: 10000, duration: 900 };
         try {
             const org = { lat: source.lat, lng: source.lng };
             const dest = { lat: destination.lat, lng: destination.lng };
-            metrics = await this.mapsService.getDistanceAndDuration(org, dest, true);
+            metrics = await this.mapsService.getDistanceAndDuration(org, dest, true, {
+                userId,
+                providerId: driverId,
+                referenceId: rideId.toString(),
+                moduleType: 'pick-n-drop'
+            });
         } catch (e) {
             console.error('Initial maps check failed, using fallback', e);
         }
 
         const rideRequest = new this.rideRequestModel({
+            _id: rideId,
             userId: new Types.ObjectId(userId),
             driverId: driverId ? new Types.ObjectId(driverId) : undefined,
             vehicleId: new Types.ObjectId(vehicleId),

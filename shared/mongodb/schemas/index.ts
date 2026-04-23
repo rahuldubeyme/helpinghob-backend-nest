@@ -19,6 +19,7 @@ export * from './transaction.schema';
 export * from './vehicle.schema';
 export * from './map-route.schema';
 export * from './live-location.schema';
+export * from './map-api-hit.schema';
 export * from './user.schema';
 export * from './coupon.schema';
 export * from './faq.schema';
