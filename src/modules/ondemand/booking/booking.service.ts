@@ -6,6 +6,7 @@ import { User, UserDocument } from '@mongodb/schemas/user.schema';
 import { OndemandBooking, OndemandBookingDocument } from '@mongodb/schemas/ondemand-booking.schema';
 import { Earning, EarningDocument } from '@mongodb/schemas/earning.schema';
 import { generateOtp } from '@common/utils';
+import { BookingStatus, isValidTransition } from './dto/update-booking-status.dto';
 
 @Injectable()
 export class OndemandBookingService {
@@ -16,7 +17,7 @@ export class OndemandBookingService {
         @InjectModel(Earning.name) private earningModel: Model<EarningDocument>,
     ) { }
 
-    async createBooking(userId: string, dto: any) {
+    async createBooking(userId: string, dto: any): Promise<any> {
         const { providerId, serviceId, scheduledAt, bookingType, materialIncluded } = dto;
         const service = await this.serviceModel.findById(serviceId);
         if (!service) throw new NotFoundException('Service not found');
@@ -37,22 +38,36 @@ export class OndemandBookingService {
         return booking;
     }
 
-    async getMyBookings(providerId: string, status?: string) {
+    async getMyBookings(providerId: string, status?: string): Promise<any> {
         const filter: any = { providerId: new Types.ObjectId(providerId), isDeleted: false };
         if (status) filter.status = status;
         return this.bookingModel.find(filter).populate('userId').sort({ createdAt: -1 }).lean();
     }
 
-    async updateBookingStatus(providerId: string, bookingId: string, status: string) {
-        const booking = await this.bookingModel.findOne({ _id: new Types.ObjectId(bookingId), providerId: new Types.ObjectId(providerId) });
+    async updateBookingStatus(providerId: string, bookingId: string, status: BookingStatus): Promise<any> {
+        const booking = await this.bookingModel.findOne({
+            _id: new Types.ObjectId(bookingId),
+            providerId: new Types.ObjectId(providerId),
+            isDeleted: false,
+        });
         if (!booking) throw new NotFoundException('Booking not found');
-        if (status === 'accepted') booking.acceptedAt = new Date();
+
+        if (!isValidTransition(booking.status, status)) {
+            throw new BadRequestException(
+                `Cannot transition from '${booking.status}' to '${status}'`,
+            );
+        }
+
         booking.status = status;
+        if (status === BookingStatus.ON_THE_WAY) booking.onTheWayAt = new Date();
+        if (status === BookingStatus.REACHED) booking.reachedAt = new Date();
+        if (status === BookingStatus.CANCELLED) booking.cancelledAt = new Date();
+
         await booking.save();
         return booking;
     }
 
-    async rescheduleBooking(providerId: string, bookingId: string, newTime: Date) {
+    async rescheduleBooking(providerId: string, bookingId: string, newTime: Date): Promise<any> {
         const booking = await this.bookingModel.findOne({ _id: new Types.ObjectId(bookingId), providerId: new Types.ObjectId(providerId) });
         if (!booking) throw new NotFoundException('Booking not found');
         booking.scheduledAt = newTime;
@@ -61,7 +76,7 @@ export class OndemandBookingService {
         return booking;
     }
 
-    async startService(providerId: string, bookingId: string, otp: string, beforeImages: string[]) {
+    async startService(providerId: string, bookingId: string, otp: string, beforeImages: string[]): Promise<any> {
         const booking = await this.bookingModel.findOne({ _id: new Types.ObjectId(bookingId), providerId: new Types.ObjectId(providerId) });
         if (!booking) throw new NotFoundException('Booking not found');
         if (booking.otp !== otp) throw new BadRequestException('Invalid OTP');
@@ -72,7 +87,7 @@ export class OndemandBookingService {
         return booking;
     }
 
-    async completeService(providerId: string, bookingId: string, afterImages: string[], paymentMethod: 'cash' | 'upi') {
+    async completeService(providerId: string, bookingId: string, afterImages: string[], paymentMethod: 'cash' | 'upi'): Promise<any> {
         const booking = await this.bookingModel.findOne({ _id: new Types.ObjectId(bookingId), providerId: new Types.ObjectId(providerId) });
         if (!booking) throw new NotFoundException('Booking not found');
         if (booking.status !== 'started') throw new BadRequestException('Service not started yet');
@@ -97,7 +112,7 @@ export class OndemandBookingService {
         return booking;
     }
 
-    async getEarnings(providerId: string) {
+    async getEarnings(providerId: string): Promise<any> {
         const earnings = await this.earningModel.find({ providerId: new Types.ObjectId(providerId) }).lean();
         const total = earnings.reduce((sum, e) => sum + e.netEarning, 0);
         return { earnings, total };

@@ -42,7 +42,7 @@ export class MapsService {
         origin: { lat: number; lng: number },
         destination: { lat: number; lng: number },
         useRealApi: boolean = false,
-        metadata?: { userId?: string; providerId?: string; referenceId?: string; moduleType?: string }
+        metadata?: any
     ): Promise<{ distance: number; duration: number }> {
         // Default to local estimation to save costs unless explicitly requested
         if (!useRealApi) {

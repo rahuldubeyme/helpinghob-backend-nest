@@ -28,4 +28,10 @@ export class OndemandServiceController {
     getProviderDetails(@Param('id') id: string) {
         return this.ondemandService.getProviderDetails(id);
     }
+
+    @Get('provider/:id/reviews')
+    @ApiOperation({ summary: 'Get all reviews for a specific provider' })
+    getProviderReviews(@Param('id') id: string, @Query() query: any) {
+        return this.ondemandService.getProviderReviews(id, query);
+    }
 }

@@ -33,10 +33,19 @@ export class OndemandBooking {
     acceptedAt: Date;
 
     @Prop()
+    onTheWayAt: Date;
+
+    @Prop()
+    reachedAt: Date;
+
+    @Prop()
     startedAt: Date;
 
     @Prop()
     completedAt: Date;
+
+    @Prop()
+    cancelledAt: Date;
 
     @Prop()
     otp: string;

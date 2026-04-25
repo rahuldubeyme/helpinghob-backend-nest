@@ -1,15 +1,16 @@
 import { Controller, Get, Post, Body, Param, Query, Patch } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { OndemandBookingService } from './booking.service';
 import { Auth, CurrentUser } from '@common/decorators';
-import { ROLE, USER_ROLE } from '@common/constant';
+import { ROLE } from '@common/constant';
+import { UpdateBookingStatusDto } from './dto/update-booking-status.dto';
 
 @ApiTags('On-Demand Booking')
 @Controller('ondemand-booking')
 export class OndemandBookingController {
     constructor(private readonly bookingService: OndemandBookingService) { }
 
-    @Post('book')
+    @Post('create-booking')
     @Auth(ROLE.USER)
     @ApiOperation({ summary: 'User: Book a service provider' })
     createBooking(@CurrentUser('id') userId: string, @Body() dto: any) {
@@ -19,6 +20,7 @@ export class OndemandBookingController {
     @Get('provider/my-bookings')
     @Auth(ROLE.PROVIDER)
     @ApiOperation({ summary: 'Provider: Get my bookings' })
+    @ApiQuery({ name: 'status', required: false, enum: ['pending', 'accepted', 'on_the_way', 'reached', 'started', 'completed', 'cancelled'] })
     getMyBookings(@CurrentUser('id') providerId: string, @Query('status') status: string) {
         return this.bookingService.getMyBookings(providerId, status);
     }
@@ -29,9 +31,20 @@ export class OndemandBookingController {
     updateBookingStatus(
         @CurrentUser('id') providerId: string,
         @Param('id') bookingId: string,
-        @Body('status') status: string
+        @Body() dto: UpdateBookingStatusDto,
     ) {
-        return this.bookingService.updateBookingStatus(providerId, bookingId, status);
+        return this.bookingService.updateBookingStatus(providerId, bookingId, dto.status);
+    }
+
+    @Patch('provider/booking/:id/status')
+    @Auth(ROLE.PROVIDER)
+    @ApiOperation({ summary: 'Provider: Update booking status (on_the_way → reached → completed | cancelled)' })
+    updateStatus(
+        @CurrentUser('id') providerId: string,
+        @Param('id') bookingId: string,
+        @Body() dto: UpdateBookingStatusDto,
+    ) {
+        return this.bookingService.updateBookingStatus(providerId, bookingId, dto.status);
     }
 
     @Patch('provider/booking/:id/reschedule')

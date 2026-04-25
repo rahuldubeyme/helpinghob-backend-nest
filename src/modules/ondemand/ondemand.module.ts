@@ -2,8 +2,12 @@
 import { MongooseModule } from '@nestjs/mongoose';
 import { OndemandServiceController } from './ondemand.controller';
 import { OndemandService } from './ondemand.service';
+import { ProviderController } from './provider/provider.controller';
+import { ProviderService } from './provider/provider.service';
 import { User, UserSchema } from '@mongodb/schemas/user.schema';
 import { Booking, BookingSchema } from '@mongodb/schemas/booking.schema';
+import { OndemandBooking, OndemandBookingSchema } from '@mongodb/schemas/ondemand-booking.schema';
+import { LiveLocation, LiveLocationSchema } from '@mongodb/schemas/live-location.schema';
 import { Order, OrderSchema } from '@mongodb/schemas/order.schema';
 import { Review, ReviewSchema } from '@mongodb/schemas/review.schema';
 import { ServiceCategory, ServiceCategorySchema } from '@mongodb/schemas/service-category.schema';
@@ -17,6 +21,8 @@ import { Service, ServiceSchema } from '@mongodb/schemas/service.schema';
         MongooseModule.forFeature([
             { name: User.name, schema: UserSchema },
             { name: Booking.name, schema: BookingSchema },
+            { name: OndemandBooking.name, schema: OndemandBookingSchema },
+            { name: LiveLocation.name, schema: LiveLocationSchema },
             { name: Order.name, schema: OrderSchema },
             { name: Review.name, schema: ReviewSchema },
             { name: ServiceCategory.name, schema: ServiceCategorySchema },
@@ -26,8 +32,8 @@ import { Service, ServiceSchema } from '@mongodb/schemas/service.schema';
             { name: Service.name, schema: ServiceSchema },
         ]),
     ],
-    controllers: [OndemandServiceController],
-    providers: [OndemandService],
-    exports: [OndemandService],
+    controllers: [OndemandServiceController, ProviderController],
+    providers: [OndemandService, ProviderService],
+    exports: [OndemandService, ProviderService],
 })
 export class OndemandServiceModule { }
