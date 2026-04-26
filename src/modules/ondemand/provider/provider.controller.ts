@@ -8,7 +8,7 @@ import { ApiType } from '@common/decorators';
 
 @ApiTags('Ondemand-Provider')
 @Auth(ROLE.USER, ROLE.PROVIDER)
-@Controller('ondemand/provider')
+@Controller('providers')
 export class ProviderController {
     constructor(
         private readonly providerService: ProviderService

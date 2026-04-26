@@ -39,7 +39,7 @@ export class OndemandService {
 
             return {
                 ...p,
-                expertTitle: `${prefix} ${p.categoryName || 'PROVIDER'}`.toUpperCase(),
+                expertTitle: `${prefix} ${'PROVIDER'}`.toUpperCase(),
                 isVerified: p.accountStatus === 'approved'
             };
         });
@@ -86,7 +86,7 @@ export class OndemandService {
 
         const provider = {
             ...providerData,
-            expertTitle: `${prefix} ${providerData.categoryName || 'PROVIDER'}`.toUpperCase(),
+            expertTitle: `${prefix} ${'PROVIDER'}`.toUpperCase(),
             isVerified: providerData.accountStatus === 'approved',
             jobsDone,
             totalReviews

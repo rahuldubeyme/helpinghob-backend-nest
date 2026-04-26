@@ -211,9 +211,21 @@ export class AuthService {
 
     // ── 5. Setup Profile (driver/merchant specific) ─────────────────────────────
     async setupProfile(userId: string, dto: SetupProfileDto, headers: any) {
-        const { roleType, role: roleName, vehicleOwnerShip, vehicleId, haveHelmet,
+        const { 
+
+            roleType, role: roleName, 
+
+            //driver
+            vehicleOwnerShip, vehicleId, haveHelmet,
             vehicleNumber, vehicleColor, vehicleModelYear, vehicleModelId, aadharNumber,
-            personalDoc, vehicleDocuments, lat, lng } = dto;
+            personalDoc, vehicleDocuments, lat, lng,
+        
+
+            //provider
+            shopName, experience, startingPrice, categoryId, 
+            subCategoryId, services
+        
+        } = dto;
         const language = headers['language'] || 'en';
 
         const user = await this.userModel.findById(userId);
@@ -240,6 +252,24 @@ export class AuthService {
                 year: vehicleModelYear ?? user.vehicle?.year,
                 modelId: vehicleModelId ?? user.vehicle?.modelId,
             };
+        }
+
+        if (user.roleName === 'provider'){
+            // TODO: provider setup
+            user.provider = {
+                ...user.provider,
+                aadharNumber: aadharNumber ?? user.provider?.aadharNumber,
+                personalDoc: personalDoc ?? user.provider?.personalDoc,
+                categoryId: (categoryId && Types.ObjectId.isValid(categoryId)) ? new Types.ObjectId(categoryId) : user.provider?.categoryId,
+                subCategoryId: (subCategoryId && Types.ObjectId.isValid(subCategoryId)) ? new Types.ObjectId(subCategoryId) : user.provider?.subCategoryId,
+                services: services ?? user.provider?.services,
+                completedJobs: 0,
+                shopName: shopName ?? user.provider?.shopName,
+                companyName: shopName ?? user.provider?.companyName,
+            };
+
+            user.startingPrice = startingPrice ?? user?.startingPrice;
+            user.experience = experience ?? user?.experience;
         }
 
         if (user.roleName === 'merchant'){
@@ -280,7 +310,6 @@ export class AuthService {
             user.roleName = mapRoleName(roleType);
         }
         if (roleName) user.roleName = roleName;
-        if (shopName) user.shop = { ...user.shop, name: shopName };
 
         if (email && email !== user.email) {
             const existing = await this.userModel.findOne({

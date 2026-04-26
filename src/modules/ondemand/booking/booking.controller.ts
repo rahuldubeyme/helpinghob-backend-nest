@@ -6,7 +6,7 @@ import { ROLE } from '@common/constant';
 import { UpdateBookingStatusDto } from './dto/update-booking-status.dto';
 
 @ApiTags('On-Demand Booking')
-@Controller('ondemand-booking')
+@Controller('bookings')
 export class OndemandBookingController {
     constructor(private readonly bookingService: OndemandBookingService) { }
 

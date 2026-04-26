@@ -60,15 +60,15 @@ export class GroceryService {
 
     // POST /grocery/add-to-cart
     async addToCart(userId: string, productId: string, shopId: string, quantity: number) {
-        const user = await this.userModel.findById(userId);
-        if (!user) throw new NotFoundException('User not found');
-        const cart = user.cart || [];
-        const idx = cart.findIndex((i: any) => i.productId?.toString() === productId);
-        if (idx >= 0) cart[idx].quantity = quantity;
-        else cart.push({ productId: new Types.ObjectId(productId), shopId: new Types.ObjectId(shopId), quantity });
-        user.cart = cart;
-        await user.save();
-        return user.cart;
+        // const user = await this.userModel.findById(userId);
+        // if (!user) throw new NotFoundException('User not found');
+        // const cart = user.cart || [];
+        // const idx = cart.findIndex((i: any) => i.productId?.toString() === productId);
+        // if (idx >= 0) cart[idx].quantity = quantity;
+        // else cart.push({ productId: new Types.ObjectId(productId), shopId: new Types.ObjectId(shopId), quantity });
+        // user.cart = cart;
+        // await user.save();
+        // return user.cart;
     }
 
     // PUT /grocery/add-to-cart
@@ -78,8 +78,8 @@ export class GroceryService {
 
     // GET /grocery/cart-details
     async cartDetails(userId: string) {
-        const user = await this.userModel.findById(userId).populate('cart.productId').lean();
-        return user?.cart ?? [];
+        // const user = await this.userModel.findById(userId).populate('cart.productId').lean();
+        // return user?.cart ?? [];
     }
 
     // DELETE /grocery/cart-details
@@ -91,20 +91,20 @@ export class GroceryService {
     // POST /grocery/create-order
     async createOrder(userId: string, dto: any) {
         const { shopId, addressId, couponCode, instructions } = dto;
-        const cart = (await this.userModel.findById(userId).lean())?.cart ?? [];
-        if (!cart.length) throw new BadRequestException('Cart is empty');
-        const order = await this.orderModel.create({
-            userId: new Types.ObjectId(userId),
-            merchantId: new Types.ObjectId(shopId),
-            items: cart,
-            addressId: new Types.ObjectId(addressId),
-            couponCode,
-            instructions,
-            status: 'PENDING',
-            type: 'grocery',
-        });
+        // const cart = (await this.userModel.findById(userId).lean())?.cart ?? [];
+        // if (!cart.length) throw new BadRequestException('Cart is empty');
+        // const order = await this.orderModel.create({
+        //     userId: new Types.ObjectId(userId),
+        //     merchantId: new Types.ObjectId(shopId),
+        //     items: cart,
+        //     addressId: new Types.ObjectId(addressId),
+        //     couponCode,
+        //     instructions,
+        //     status: 'PENDING',
+        //     type: 'grocery',
+        // });
         await this.userModel.findByIdAndUpdate(userId, { $set: { cart: [] } });
-        return order;
+       // return order;
     }
 
     // POST /grocery/pay

@@ -85,9 +85,6 @@ export class User {
     @Prop({ enum: ['Online', 'Offline', 'Busy'], default: 'Offline' })
     availability: string;
 
-    @Prop({ default: 0 })
-    walletBalance: number;
-
     @Prop({ default: 'en' })
     language: string;
 
@@ -127,13 +124,33 @@ export class User {
         modelId?: string;
     };
 
+    dailyRideCount: number;
+    totalIncentivesEarned: number; 
+
     @Prop({ type: Object })
-    shop?: {
-        name: string;
+    driver?: {
+        dailyRideCount: number;
+        totalIncentivesEarned: number;     
+    };
+
+
+    @Prop({ type: Object })
+    provider?: {
+        shopName?: string;
+        completedJobs?: number;
+        companyName?: string;
+        categoryId?: Types.ObjectId;
+        subCategoryId?: Types.ObjectId;
+        services?: string[];  
+        aadharNumber?: string;
+        personalDoc?: string[];     
     };
 
     @Prop()
     validTill: Date;
+    
+    @Prop({ default: 0 })
+    walletBalance: number;
 
     @Prop({ type: Object, default: { total: 0, today: 0, pending: 0 } })
     earnings: {
@@ -148,9 +165,6 @@ export class User {
     @Prop({ default: 0 })
     totalReviews: number;
 
-    @Prop({ type: [Object], default: [] })
-    cart: any[];
-
     @Prop({ default: 0 })
     experience: number;
 
@@ -158,16 +172,7 @@ export class User {
     startingPrice: number;
 
     @Prop({ type: Types.ObjectId, ref: 'Category', index: true })
-    category: Types.ObjectId;
-
-    @Prop({ index: true })
-    categoryName: string;
-
-    @Prop({ default: 0 })
-    dailyRideCount: number;
-
-    @Prop({ default: 0 })
-    totalIncentivesEarned: number;
+    categoryId: Types.ObjectId;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

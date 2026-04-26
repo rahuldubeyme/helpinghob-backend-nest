@@ -137,6 +137,27 @@ export class SetupProfileDto {
 
     @ApiPropertyOptional({ example: 'fcm-device-token-xyz' })
     @IsString() @IsOptional() deviceToken?: string;
+
+    //provider
+    @ApiPropertyOptional({ example: 'Shop Name' })
+    @IsString() @IsOptional() shopName?: string;
+
+    @ApiPropertyOptional({ example: 5 })
+    @IsNumber() @IsOptional() experience?: number;
+
+    @ApiPropertyOptional({ example: 100 })
+    @IsNumber() @IsOptional() startingPrice?: number;
+
+    @ApiPropertyOptional({ example: '664f1c2e8a1b2c3d4e5f6a7e', description: 'Category ID' })
+    @IsString() @IsOptional() categoryId?: string;
+
+    @ApiPropertyOptional({ example: '664f1c2e8a1b2c3d4e5f6a7f', description: 'Sub-category ID' })
+    @IsString() @IsOptional() subCategoryId?: string;
+
+    @ApiPropertyOptional({ type: [String], example: ['Service 1', 'Service 2'] })
+    @IsArray() @IsOptional() services?: string[];
+
+
 }
 
 // ── Update Profile ────────────────────────────────────────────────────────────
@@ -147,7 +168,6 @@ export class UpdateProfileDto extends SetupProfileDto {
     @ApiPropertyOptional() @IsString() @IsOptional() dob?: string;
     @ApiPropertyOptional() @IsString() @IsOptional() bio?: string;
     @ApiPropertyOptional() @IsEmail() @IsOptional() email?: string;
-    @ApiPropertyOptional() @IsString() @IsOptional() shopName?: string;
 }
 
 // ── Setup Email / Phone ───────────────────────────────────────────────────────

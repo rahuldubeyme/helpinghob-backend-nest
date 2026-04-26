@@ -45,32 +45,32 @@ export class HardwareShopService {
     async addToCart(userId: string, productId: string, shopId: string, quantity: number) {
         const user = await this.userModel.findById(userId);
         if (!user) throw new NotFoundException('User not found');
-        const cart = user.cart || [];
-        const idx = cart.findIndex((i: any) => i.productId?.toString() === productId);
-        if (idx >= 0) cart[idx].quantity = quantity;
-        else cart.push({ productId: new Types.ObjectId(productId), shopId: new Types.ObjectId(shopId), quantity });
-        user.cart = cart;
+        //const cart = user.cart || [];
+        //const idx = cart.findIndex((i: any) => i.productId?.toString() === productId);
+        //if (idx >= 0) cart[idx].quantity = quantity;
+        //else cart.push({ productId: new Types.ObjectId(productId), shopId: new Types.ObjectId(shopId), quantity });
+       // user.cart = cart;
         await user.save();
-        return user.cart;
+       // return user.cart;
     }
     async updateCart(userId: string, productId: string, shopId: string, quantity: number) {
         return this.addToCart(userId, productId, shopId, quantity);
     }
     async cartDetails(userId: string) {
-        const user = await this.userModel.findById(userId).populate('cart.productId').lean();
-        return user?.cart ?? [];
+        //const user = await this.userModel.findById(userId).populate('cart.productId').lean();
+        //return user?.cart ?? [];
     }
     async clearCart(userId: string) {
         await this.userModel.findByIdAndUpdate(userId, { $set: { cart: [] } });
         return {};
     }
     async createOrder(userId: string, dto: any) {
-        const cart = (await this.userModel.findById(userId).lean())?.cart ?? [];
-        if (!cart.length) throw new BadRequestException('Cart is empty');
+       // const cart = (await this.userModel.findById(userId).lean())?.cart ?? [];
+      //  if (!cart.length) throw new BadRequestException('Cart is empty');
         const order = await this.orderModel.create({
             userId: new Types.ObjectId(userId),
             merchantId: new Types.ObjectId(dto.shopId),
-            items: cart,
+            //items: cart,
             addressId: new Types.ObjectId(dto.addressId),
             couponCode: dto.couponCode,
             instructions: dto.instructions,

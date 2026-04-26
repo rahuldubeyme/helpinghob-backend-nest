@@ -45,7 +45,7 @@ export class PaymentService {
 
         if (settings?.pickNDropIncentive && driver) {
             const { ridesThreshold, amount } = settings.pickNDropIncentive;
-            if (driver.dailyRideCount >= ridesThreshold) {
+            if (driver?.dailyRideCount >= ridesThreshold) {
                 // Reward Incentive
                 await this.userModel.updateOne(
                     { _id: ride.driverId },
