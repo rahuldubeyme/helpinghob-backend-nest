@@ -1,5 +1,5 @@
 import { Controller, Get, Patch, Body, Req, Query } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags, ApiQuery } from '@nestjs/swagger';
 import { ROLE } from '@common/constant';
 import { Auth } from '@common/decorators';
 import { ProviderService } from './provider.service';
@@ -47,5 +47,22 @@ export class ProviderController {
     @ApiOperation({ summary: 'Get provider earnings summary' })
     async getProviderEarnings(@Req() req: any) {
         return await this.providerService.getProviderEarnings(req.user.id);
+    }
+
+    @Get('my-jobs')
+    @ApiType('provider')
+    @ApiOperation({ summary: 'Get provider jobs by tab: active | upcoming | past' })
+    @ApiQuery({ name: 'tab', required: false, enum: ['active', 'upcoming', 'past'], description: 'Job tab' })
+    @ApiQuery({ name: 'subFilter', required: false, enum: ['completed', 'cancelled', 'disputed'], description: 'Past tab sub-filter' })
+    @ApiQuery({ name: 'page', required: false, type: Number })
+    @ApiQuery({ name: 'limit', required: false, type: Number })
+    async getMyJobs(
+        @Req() req: any,
+        @Query('tab') tab: string = 'active',
+        @Query('subFilter') subFilter?: string,
+        @Query('page') page: number = 1,
+        @Query('limit') limit: number = 20,
+    ) {
+        return await this.providerService.getMyJobs(req.user.id, tab, subFilter, +page, +limit);
     }
 }

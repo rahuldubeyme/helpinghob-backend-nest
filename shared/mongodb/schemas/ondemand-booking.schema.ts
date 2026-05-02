@@ -18,7 +18,7 @@ export class OndemandBooking {
     subCategoryId: Types.ObjectId;
 
     @Prop({
-        enum: ['pending', 'accepted', 'rejected', 'started', 'completed', 'cancelled'],
+        enum: ['pending', 'accepted', 'rejected', 'on_the_way', 'reached', 'started', 'completed', 'cancelled', 'disputed'],
         default: 'pending'
     })
     status: string;
